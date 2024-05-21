@@ -3,6 +3,7 @@ import FormItem from "../components/Dashboard/FormItem";
 import AddFormButton from "../components/Dashboard/AddFormButton";
 import FormResponse from "../components/Dashboard/FormResponse";
 import EditForm from "../components/Dashboard/EditForm";
+import AddForm from "../components/Dashboard/AddForm";
 
 interface Form {
   title: string;
@@ -39,15 +40,18 @@ const Dashboard: FC = () => {
       userTypeVisibility: ["user", "admin"],
       visible: true,
       sections: new Map([
-        [1, {
-          id: 1,
-          title: "Section 1",
-          answers: [
-            { id: 1, question: "Question 1", answer: "" },
-            { id: 2, question: "Question 2", answer: "" },
-            { id: 3, question: "Question 3", answer: "" }
-          ]
-        }]
+        [
+          1,
+          {
+            id: 1,
+            title: "Section 1",
+            answers: [
+              { id: 1, question: "Question 1", answer: "" },
+              { id: 2, question: "Question 2", answer: "" },
+              { id: 3, question: "Question 3", answer: "" },
+            ],
+          },
+        ],
       ]),
     },
     {
@@ -57,7 +61,7 @@ const Dashboard: FC = () => {
       userTypeVisibility: ["user", "admin"],
       visible: true,
       sections: new Map(),
-    }
+    },
   ]);
 
   const [viewingFormIndex, setViewingFormIndex] = useState<number | null>(null);
@@ -65,6 +69,7 @@ const Dashboard: FC = () => {
   const [editingFormIndex, setEditingFormIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [users, setUsers] = useState<UserInfo[]>([]);
+  const [isAddingForm, setIsAddingForm] = useState<boolean>(false);
 
   const toggleVisibility = (index: number) => {
     const updatedForms = [...forms];
@@ -72,16 +77,9 @@ const Dashboard: FC = () => {
     setForms(updatedForms);
   };
 
-  const addForm = () => {
-    const newForm: Form = {
-      title: "New Form",
-      description: "",
-      imageSource: "",
-      userTypeVisibility: [],
-      visible: true,
-      sections: new Map()
-    };
+  const addForm = (newForm: Form) => {
     setForms([...forms, newForm]);
+    setIsAddingForm(false);
   };
 
   const editForm = (index: number) => {
@@ -99,7 +97,7 @@ const Dashboard: FC = () => {
         { firstName: "John", lastName: "Doe" },
         { firstName: "Jane", lastName: "Doe" },
         { firstName: "Alice", lastName: "Smith" },
-        { firstName: "Bob", lastName: "Johnson" }
+        { firstName: "Bob", lastName: "Johnson" },
       ];
 
       const dummySections = new Map<number, FormSection>();
@@ -109,8 +107,8 @@ const Dashboard: FC = () => {
         answers: [
           { id: 1, question: "Question 1", answer: "3" },
           { id: 2, question: "Question 2", answer: "2" },
-          { id: 3, question: "Question 3", answer: "5" }
-        ]
+          { id: 3, question: "Question 3", answer: "5" },
+        ],
       });
 
       const updatedForms = [...forms];
@@ -135,10 +133,12 @@ const Dashboard: FC = () => {
   return (
     <>
       <div className="relative overflow-x-auto">
-        <AddFormButton onClick={addForm} />
+        <AddFormButton onClick={() => setIsAddingForm(true)} />
       </div>
       <div className="grid gap-2 lg:grid-cols-4">
-        {isEditing ? (
+        {isAddingForm ? (
+          <AddForm onSubmit={addForm} />
+        ) : isEditing ? (
           <div className="flex justify-center items-center w-full h-full fixed inset-0 z-50 bg-gray-900 bg-opacity-50">
             <EditForm form={forms[editingFormIndex!]} onSubmit={handleSubmit} />
           </div>

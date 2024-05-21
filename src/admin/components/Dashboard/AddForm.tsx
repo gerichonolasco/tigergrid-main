@@ -1,5 +1,5 @@
 import React, { FC, useState, ChangeEvent, useEffect } from "react";
-import NextButton from "../components/AddForm/NextButton";
+import NextButton from "../AddForm/NextButton";
 
 interface NewQuestion {
   newQuestion: string;
@@ -7,7 +7,32 @@ interface NewQuestion {
   newDropdownChoices: string[];
 }
 
-const AddForm: FC = () => {
+interface AddFormProps {
+  onSubmit: (newForm: Form) => void;
+}
+
+interface Form {
+  title: string;
+  description: string;
+  imageSource: string;
+  userTypeVisibility: string[];
+  visible: boolean;
+  sections: Map<number, FormSection>;
+}
+
+interface FormSection {
+  id: number;
+  title: string;
+  answers: FormQuestion[];
+}
+
+interface FormQuestion {
+  id: number;
+  question: string;
+  answer: string;
+}
+
+const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
   const [formTitle, setFormTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
@@ -58,41 +83,34 @@ const AddForm: FC = () => {
     setIsFormValid(validateForm());
   }, [formTitle, description, file]);
 
-  const submitForm = async (formData: any) => {
-    try {
-      // Perform API call here
-      console.log("Form submitted!");
-      setFormTitle("");
-      setDescription("");
-      setFile(null);
-      setQuestions([]);
-    } catch (error) {
-      setError("Failed to connect to the server.");
-    }
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = {
+    const newForm: Form = {
       title: formTitle,
       description: description,
-      sections: {
-        1: {
-          id: 1,
-          title: "sectionTitle",
-          answers: questions.map((q, index) => ({
-            id: index + 1,
-            question: q.newQuestion,
-            answer:
-              q.newInputType === "dropdown"
-                ? q.newDropdownChoices.join(",")
-                : q.newInputType,
-          })),
-        },
-      },
+      imageSource: URL.createObjectURL(file!),
+      userTypeVisibility: ["user", "admin"],
+      visible: true,
+      sections: new Map([
+        [
+          1,
+          {
+            id: 1,
+            title: "Section 1",
+            answers: questions.map((q, index) => ({
+              id: index + 1,
+              question: q.newQuestion,
+              answer:
+                q.newInputType === "dropdown"
+                  ? q.newDropdownChoices.join(",")
+                  : q.newInputType,
+            })),
+          },
+        ],
+      ]),
     };
 
-    await submitForm(formData);
+    onSubmit(newForm);
   };
 
   return (
