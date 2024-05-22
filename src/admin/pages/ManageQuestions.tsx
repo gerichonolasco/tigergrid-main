@@ -183,6 +183,11 @@ const ManageQuestions: FC = () => {
 		}); // Reset the question state for the new page
 	};
 
+	const handleSubmit = () => {
+		// Handle form submission logic here
+		console.log("Submitting questions:", questions);
+	};
+
 	// Filter questions by the current page
 	const filteredQuestions = questions.filter((q) => q.page === currentPage);
 
@@ -267,6 +272,14 @@ const ManageQuestions: FC = () => {
 						error={error}
 					/>
 				)}
+				<div className="flex justify-center mt-4">
+					<button
+						className="px-4 py-2 bg-blue-500 text-white rounded"
+						onClick={handleSubmit}
+					>
+						Submit All Questions
+					</button>
+				</div>
 			</div>
 		</div>
 	);
