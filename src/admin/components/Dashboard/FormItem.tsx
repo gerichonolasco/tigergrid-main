@@ -6,8 +6,9 @@ interface FormItemProps {
   content: string;
   showOnUserSide: boolean;
   toggleShowOnUserSide: () => void;
-  onEdit: () => void; // Add onEdit prop
-  onView: () => void; // Add onView prop
+  onEdit: () => void;
+  onView: () => void;
+  onDelete: () => void; // Add onDelete prop
 }
 
 const FormItem: FC<FormItemProps> = ({
@@ -18,6 +19,7 @@ const FormItem: FC<FormItemProps> = ({
   toggleShowOnUserSide,
   onEdit,
   onView,
+  onDelete, // Include onDelete prop
 }) => {
   return (
     <div className="border border-gray-300 rounded p-4">
@@ -45,6 +47,12 @@ const FormItem: FC<FormItemProps> = ({
             onClick={onEdit}
           >
             Edit
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-red-500 text-white"
+            onClick={onDelete}
+          >
+            Delete
           </button>
         </div>
       </div>

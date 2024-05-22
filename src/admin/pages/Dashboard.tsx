@@ -34,13 +34,9 @@ interface UserInfo {
 
 const Dashboard: FC = () => {
 	const [forms, setForms] = useState<Form[]>([]);
-	const [viewingFormIndex, setViewingFormIndex] = useState<number | null>(
-		null
-	);
+	const [viewingFormIndex, setViewingFormIndex] = useState<number | null>(null);
 	const [isEditing, setIsEditing] = useState<boolean>(false);
-	const [editingFormIndex, setEditingFormIndex] = useState<number | null>(
-		null
-	);
+	const [editingFormIndex, setEditingFormIndex] = useState<number | null>(null);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [users, setUsers] = useState<UserInfo[]>([]);
 	const [isAddingForm, setIsAddingForm] = useState<boolean>(false);
