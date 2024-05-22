@@ -1,4 +1,5 @@
-import React, { FC, useEffect, useState } from "react";
+
+import { FC, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Form {
@@ -19,19 +20,12 @@ const LandingPage: FC = () => {
 
   const fetchForms = async () => {
     try {
-      const simulatedForms: Form[] = [
-        {
-          //sample output only
-          id: 1,
-          title: "Stakeholder's Feedback",
-          description:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-          imageSource: "/default_image.jpg",
-          sections: new Map(),
-        },
-      ];
-
-      setForms(simulatedForms);
+      const response = await fetch("http://localhost:8080/form/getAll");
+      if (!response.ok) {
+        throw new Error("Failed to fetch forms. Server responded with status: " + response.status);
+      }
+      const result: Form[] = await response.json();
+      setForms(result);
     } catch (error) {
       console.error("Error fetching forms:", error);
     }
