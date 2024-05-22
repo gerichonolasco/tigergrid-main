@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect, ChangeEvent } from "react";
+import { ChangeEvent, FC, useEffect, useState } from "react";
 import EditFormPage1 from "../components/Dashboard/EditForm/EditFormPage1";
 import EditFormPage2 from "../components/Dashboard/EditForm/EditFormPage2";
 import EditFormPage3 from "../components/Dashboard/EditForm/EditFormPage3";
@@ -24,7 +24,7 @@ const ManageQuestions: FC = () => {
 	const [error, setError] = useState<string>("");
 
 	useEffect(() => {
-		fetch("http://localhost:8080/question/getAll")
+		fetch("http://localhost:8080/form/getAll")
 			.then((res) => res.json())
 			.then((result: NewQuestion[]) => {
 				setQuestions(result);
@@ -82,7 +82,7 @@ const ManageQuestions: FC = () => {
 		if (question.newQuestion && question.newInputType) {
 			const newQuestion = { ...question, page: currentPage };
 
-			fetch("http://localhost:8080/question/create", {
+			fetch("http://localhost:8080/form/create", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -120,7 +120,7 @@ const ManageQuestions: FC = () => {
 	};
 
 	const editQuestion = (index: number, updatedQuestion: NewQuestion) => {
-		fetch("http://localhost:8080/question/update", {
+		fetch("http://localhost:8080/form/update", {
 			method: "PUT",
 			headers: {
 				"Content-Type": "application/json",
@@ -153,7 +153,7 @@ const ManageQuestions: FC = () => {
 	};
 
 	const deleteQuestion = (id: number) => {
-		fetch(`http://localhost:8080/question/delete/${id}`, {
+		fetch(`http://localhost:8080/form/delete/${id}`, {
 			method: "DELETE",
 		})
 			.then((response) => {
