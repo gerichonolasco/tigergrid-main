@@ -99,7 +99,7 @@ const ManageQuestions: FC = () => {
       const newQuestion = { ...question, page: currentPage };
 
       try {
-        const response = await fetch("http://localhost:8080/form/create", {
+        const response = await fetch("http://localhost:8080/question/create", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
