@@ -1,9 +1,9 @@
-import React, { FC, useState, useEffect } from "react";
-import FormItem from "../components/Dashboard/FormItem";
-import AddFormButton from "../components/Dashboard/AddFormButton";
-import FormResponse from "../components/Dashboard/FormResponse";
-import EditForm from "../components/Dashboard/EditForm";
+import { FC, useEffect, useState } from "react";
 import AddForm from "../components/Dashboard/AddForm";
+import AddFormButton from "../components/Dashboard/AddFormButton";
+import EditForm from "../components/Dashboard/EditForm";
+import FormItem from "../components/Dashboard/FormItem";
+import FormResponse from "../components/Dashboard/FormResponse";
 
 interface Form {
 	id?: number;
@@ -40,7 +40,6 @@ const Dashboard: FC = () => {
 	const [loading, setLoading] = useState<boolean>(false);
 	const [users, setUsers] = useState<UserInfo[]>([]);
 	const [isAddingForm, setIsAddingForm] = useState<boolean>(false);
-	const [error, setError] = useState<string>("");
 
 	useEffect(() => {
 		fetch("http://localhost:8080/form/getAll")
@@ -73,9 +72,8 @@ const Dashboard: FC = () => {
 				updatedForms[index] = updatedForm;
 				setForms(updatedForms);
 			})
-			.catch((error) => {
+			.catch((error: unknown) => {
 				console.error("Error updating form visibility:", error);
-				setError(error.message);
 			});
 	};
 
@@ -98,9 +96,8 @@ const Dashboard: FC = () => {
 
 			const result = await response.json();
 			return result;
-		} catch (error) {
+		} catch (error: unknown) {
 			console.error("Error submitting form:", error);
-			setError(error.message);
 		}
 	};
 
@@ -130,7 +127,7 @@ const Dashboard: FC = () => {
 				}
 				setForms(forms.filter((form) => form.id !== id));
 			})
-			.catch((error) => {
+			.catch((error: unknown) => {
 				console.error("Error deleting form:", error);
 			});
 	};
@@ -172,7 +169,7 @@ const Dashboard: FC = () => {
 		setViewingFormIndex(null);
 	};
 
-	const handleSubmit = async (formData: any) => {
+	const handleSubmit = async (formData: Form) => {
 		console.log(formData);
 		setIsEditing(false);
 		setEditingFormIndex(null);

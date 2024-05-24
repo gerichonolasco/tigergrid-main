@@ -1,11 +1,5 @@
-import React, { FC, useState, ChangeEvent, useEffect } from "react";
+import React, { FC, useState, ChangeEvent, useEffect, useCallback } from "react";
 import NextButton from "../AddForm/NextButton";
-
-interface NewQuestion {
-  newQuestion: string;
-  newInputType: string;
-  newDropdownChoices: string[];
-}
 
 interface AddFormProps {
   onSubmit: (newForm: Form) => void;
@@ -36,14 +30,6 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
   const [formTitle, setFormTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [questions, setQuestions] = useState<NewQuestion[]>([]);
-  const [question, setQuestion] = useState<NewQuestion>({
-    newQuestion: "",
-    newInputType: "",
-    newDropdownChoices: [],
-  });
-  const [error, setError] = useState<string>("");
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
 
   const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -61,27 +47,13 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
     }
   };
 
-  const handleQuestionChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setQuestion({
-      ...question,
-      [event.target.name]: event.target.value,
-    });
-  };
-
-  const handleDropdownChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setQuestion({
-      ...question,
-      newDropdownChoices: event.target.value.split(","),
-    });
-  };
-
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     return formTitle.trim() !== "" && description.trim() !== "" && file !== null;
-  };
+  }, [formTitle, description, file]);
 
   useEffect(() => {
     setIsFormValid(validateForm());
-  }, [formTitle, description, file]);
+  }, [validateForm]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -97,14 +69,7 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
           {
             id: 1,
             title: "Section 1",
-            answers: questions.map((q, index) => ({
-              id: index + 1,
-              question: q.newQuestion,
-              answer:
-                q.newInputType === "dropdown"
-                  ? q.newDropdownChoices.join(",")
-                  : q.newInputType,
-            })),
+            answers: [], // You need to handle answers here
           },
         ],
       ]),

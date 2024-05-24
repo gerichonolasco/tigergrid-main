@@ -1,288 +1,315 @@
-import { ChangeEvent, FC, useEffect, useState } from "react";
+import { ChangeEvent, FC, useEffect, useMemo, useState } from "react";
 import EditFormPage1 from "../components/Dashboard/EditForm/EditFormPage1";
 import EditFormPage2 from "../components/Dashboard/EditForm/EditFormPage2";
 import EditFormPage3 from "../components/Dashboard/EditForm/EditFormPage3";
 import EditFormPage4 from "../components/Dashboard/EditForm/EditFormPage4";
 
 interface NewQuestion {
-	id?: number; // Added id property for question
-	newQuestion: string;
-	newInputType: string;
-	newDropdownChoices: string[];
-	page: number; // Added page property
+  id?: number;
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number;
+}
+interface EdiManageQuestion {
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number; // Ensure that EditQuestion includes the page property
 }
 
 const ManageQuestions: FC = () => {
-	const [currentPage, setCurrentPage] = useState<number>(1);
-	const [questions, setQuestions] = useState<NewQuestion[]>([]);
-	const [question, setQuestion] = useState<NewQuestion>({
-		newQuestion: "",
-		newInputType: "",
-		newDropdownChoices: [],
-		page: 1,
-	});
-	const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [questions, setQuestions] = useState<NewQuestion[]>([]);
+  const [question, setQuestion] = useState<NewQuestion>({
+    newQuestion: "",
+    newInputType: "",
+    newDropdownChoices: [],
+    page: 1,
+  });
+ 
 
-	useEffect(() => {
-		fetch("http://localhost:8080/form/getAll")
-			.then((res) => res.json())
-			.then((result: NewQuestion[]) => {
-				setQuestions(result);
-			})
-			.catch((error) => {
-				console.error("Error fetching questions:", error);
-			});
-	}, []);
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/form/getAll");
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch questions. Server responded with status: ${response.status}`
+          );
+        }
+        const result: NewQuestion[] = await response.json();
+        setQuestions(result);
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+        setError("Failed to fetch questions. Please try again later.");
+      }
+    };
+    fetchQuestions();
+  }, []);
 
-	const handleInputChange = (
-		e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-		field: keyof NewQuestion
-	) => {
-		const { value } = e.target;
-		setQuestion((prevQuestion) => ({
-			...prevQuestion,
-			[field]: value,
-		}));
-	};
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    field: string // Corrected type for field parameter
+  ) => {
+    const { value } = e.target;
+    setQuestion((prevQuestion) => ({
+      ...prevQuestion,
+      [field]: value,
+    }));
+  };
+  
 
-	const handleDropdownChange = (
-		index: number,
-		e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
-	) => {
-		const { value } = e.target;
-		setQuestion((prevQuestion) => {
-			const updatedDropdownChoices = [...prevQuestion.newDropdownChoices];
-			updatedDropdownChoices[index] = value;
-			return {
-				...prevQuestion,
-				newDropdownChoices: updatedDropdownChoices,
-			};
-		});
-	};
+  const handleDropdownChange = (
+    index: number,
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { value } = e.target;
+    setQuestion((prevQuestion) => {
+      const updatedDropdownChoices = [...prevQuestion.newDropdownChoices];
+      updatedDropdownChoices[index] = value;
+      return {
+        ...prevQuestion,
+        newDropdownChoices: updatedDropdownChoices,
+      };
+    });
+  };
 
-	const addDropdownChoice = () => {
-		setQuestion((prevQuestion) => ({
-			...prevQuestion,
-			newDropdownChoices: [...prevQuestion.newDropdownChoices, ""],
-		}));
-	};
+  const addDropdownChoice = () => {
+    setQuestion((prevQuestion) => ({
+      ...prevQuestion,
+      newDropdownChoices: [...prevQuestion.newDropdownChoices, ""],
+    }));
+  };
 
-	const removeDropdownChoice = (index: number) => {
-		setQuestion((prevQuestion) => {
-			const updatedDropdownChoices = [...prevQuestion.newDropdownChoices];
-			updatedDropdownChoices.splice(index, 1);
-			return {
-				...prevQuestion,
-				newDropdownChoices: updatedDropdownChoices,
-			};
-		});
-	};
+  const removeDropdownChoice = (index: number) => {
+    setQuestion((prevQuestion) => {
+      const updatedDropdownChoices = [...prevQuestion.newDropdownChoices];
+      updatedDropdownChoices.splice(index, 1);
+      return {
+        ...prevQuestion,
+        newDropdownChoices: updatedDropdownChoices,
+      };
+    });
+  };
 
-	const addQuestion = () => {
-		if (question.newQuestion && question.newInputType) {
-			const newQuestion = { ...question, page: currentPage };
+  const addQuestion = async () => {
+    if (question.newQuestion && question.newInputType) {
+      const newQuestion = { ...question, page: currentPage };
 
-			fetch("http://localhost:8080/form/create", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(newQuestion),
-			})
-				.then((response) => {
-					if (!response.ok) {
-						throw new Error(
-							"Failed to add question. Server responded with status: " +
-								response.status
-						);
-					}
-					return response.json();
-				})
-				.then((data) => {
-					newQuestion.id = data.id;
-					setQuestions([...questions, newQuestion]);
-				})
-				.catch((error) => {
-					console.error("Error adding question:", error);
-					setError(error.message);
-				});
+      try {
+        const response = await fetch("http://localhost:8080/form/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newQuestion),
+        });
 
-			setQuestion({
-				newQuestion: "",
-				newInputType: "",
-				newDropdownChoices: [],
-				page: currentPage,
-			});
-			setError(""); // Reset error message
-		} else {
-			setError("Please complete all fields before adding.");
-		}
-	};
+        if (!response.ok) {
+          throw new Error(
+            `Failed to add question. Server responded with status: ${response.status}`
+          );
+        }
 
-	const editQuestion = (index: number, updatedQuestion: NewQuestion) => {
-		fetch("http://localhost:8080/form/update", {
-			method: "PUT",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(updatedQuestion),
-		})
-			.then((response) => {
-				if (!response.ok) {
-					throw new Error(
-						"Failed to update question. Server responded with status: " +
-							response.status
-					);
-				}
-				setQuestions((prevQuestions) => {
-					const newQuestions = [...prevQuestions];
-					newQuestions[index] = updatedQuestion; // Replace old question with updated question
-					return newQuestions;
-				});
-				setQuestion({
-					newQuestion: "", // Clear the question text
-					newInputType: "", // Clear the input type selection
-					newDropdownChoices: [], // Clear the dropdown choices array
-					page: currentPage, // Reset page to current page
-				});
-			})
-			.catch((error) => {
-				console.error("Error updating question:", error);
-				setError(error.message);
-			});
-	};
+        const data = await response.json();
+        newQuestion.id = data.id;
+        setQuestions((prevQuestions) => [...prevQuestions, newQuestion]);
 
-	const deleteQuestion = (id: number) => {
-		fetch(`http://localhost:8080/form/delete/${id}`, {
-			method: "DELETE",
-		})
-			.then((response) => {
-				if (!response.ok) {
-					throw new Error(
-						"Failed to delete question. Server responded with status: " +
-							response.status
-					);
-				}
-				setQuestions((prevQuestions) =>
-					prevQuestions.filter((q) => q.id !== id)
-				);
-			})
-			.catch((error) => {
-				console.error("Error deleting question:", error);
-				setError(error.message);
-			});
-	};
+        setQuestion({
+          newQuestion: "",
+          newInputType: "",
+          newDropdownChoices: [],
+          page: currentPage,
+        });
+        setError(null); // Reset error message
+      } catch (error) {
+        console.error("Error adding question:", error);
+        setError("Failed to add question. Please try again later.");
+      }
+    } else {
+      setError("Please complete all fields before adding.");
+    }
+  };
 
-	const handlePageChange = (e: ChangeEvent<HTMLSelectElement>) => {
-		setCurrentPage(Number(e.target.value));
-		setQuestion({
-			newQuestion: "",
-			newInputType: "",
-			newDropdownChoices: [],
-			page: Number(e.target.value),
-		}); // Reset the question state for the new page
-	};
+  const editQuestion = async (index: number, updatedQuestion: NewQuestion) => {
+    try {
+      const response = await fetch("http://localhost:8080/form/update", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedQuestion),
+      });
 
-	const handleSubmit = () => {
-		// Handle form submission logic here
-		console.log("Submitting questions:", questions);
-	};
+      if (!response.ok) {
+        throw new Error(
+          `Failed to update question. Server responded with status: ${response.status}`
+        );
+      }
 
-	// Filter questions by the current page
-	const filteredQuestions = questions.filter((q) => q.page === currentPage);
+      setQuestions((prevQuestions) => {
+        const newQuestions = [...prevQuestions];
+        newQuestions[index] = updatedQuestion; // Replace old question with updated question
+        return newQuestions;
+      });
 
-	return (
-		<div className="flex justify-center items-center bg-cover bg-center bg-main-building">
-			<div>
-				<div className="text-gray-900 bg-gray-200 mt-8">
-					<div className="p-4 flex">
-						<h1 className="text-2xl">Manage Questions</h1>
-					</div>
-					<div className="px-3 py-4 flex justify-center">
-						<div className="mb-4">
-							<label htmlFor="pageSelector" className="mr-2">
-								Select Page:
-							</label>
-							<select
-								id="pageSelector"
-								value={currentPage}
-								onChange={handlePageChange}
-							>
-								<option value={1}>Page 1</option>
-								<option value={2}>Page 2</option>
-								<option value={3}>Page 3</option>
-								<option value={4}>Page 4</option>
-							</select>
-						</div>
-					</div>
-				</div>
-				{currentPage === 1 && (
-					<EditFormPage1
-						questions={filteredQuestions}
-						question={question}
-						handleInputChange={handleInputChange}
-						handleDropdownChange={handleDropdownChange}
-						addDropdownChoice={addDropdownChoice}
-						removeDropdownChoice={removeDropdownChoice}
-						addQuestion={addQuestion}
-						editQuestion={editQuestion}
-						deleteQuestion={deleteQuestion}
-						error={error}
-					/>
-				)}
-				{currentPage === 2 && (
-					<EditFormPage2
-						questions={filteredQuestions}
-						question={question}
-						handleInputChange={handleInputChange}
-						handleDropdownChange={handleDropdownChange}
-						addDropdownChoice={addDropdownChoice}
-						removeDropdownChoice={removeDropdownChoice}
-						addQuestion={addQuestion}
-						editQuestion={editQuestion}
-						deleteQuestion={deleteQuestion}
-						error={error}
-					/>
-				)}
-				{currentPage === 3 && (
-					<EditFormPage3
-						questions={filteredQuestions}
-						question={question}
-						handleInputChange={handleInputChange}
-						handleDropdownChange={handleDropdownChange}
-						addDropdownChoice={addDropdownChoice}
-						removeDropdownChoice={removeDropdownChoice}
-						addQuestion={addQuestion}
-						editQuestion={editQuestion}
-						deleteQuestion={deleteQuestion}
-						error={error}
-					/>
-				)}
-				{currentPage === 4 && (
-					<EditFormPage4
-						questions={filteredQuestions}
-						question={question}
-						handleInputChange={handleInputChange}
-						handleDropdownChange={handleDropdownChange}
-						addDropdownChoice={addDropdownChoice}
-						removeDropdownChoice={removeDropdownChoice}
-						addQuestion={addQuestion}
-						editQuestion={editQuestion}
-						deleteQuestion={deleteQuestion}
-						error={error}
-					/>
-				)}
-				<div className="flex justify-center mt-4">
-					<button
-						className="px-4 py-2 bg-blue-500 text-white rounded"
-						onClick={handleSubmit}
-					>
-						Submit All Questions
-					</button>
-				</div>
-			</div>
-		</div>
-	);
+      setQuestion({
+        newQuestion: "",
+        newInputType: "",
+        newDropdownChoices: [],
+        page: currentPage,
+      });
+      setError(null);
+    } catch (error) {
+      console.error("Error updating question:", error);
+      setError("Failed to update question. Please try again later.");
+    }
+  };
+
+  const filteredQuestions = useMemo(
+    () => questions.filter((q) => q.page === currentPage),
+    [questions, currentPage]
+  );
+
+  const handlePageChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setCurrentPage(Number(e.target.value));
+    setQuestion({
+      newQuestion: "",
+      newInputType: "",
+      newDropdownChoices: [],
+      page: Number(e.target.value),
+    }); // Reset the question state for the new page
+  };
+
+  const handleSubmitAllQuestions = async () => {
+    
+    try {
+      const response = await fetch("http://localhost:8080/form/submitAll", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(questions),
+      });
+  
+      if (!response.ok) {
+        throw new Error(
+          `Failed to submit all questions. Server responded with status: ${response.status}`
+        );
+      }
+  
+      console.log("All questions submitted successfully!");
+  
+      // Clear questions and error state upon successful submission
+      setQuestions([]);
+      setError(null);
+    } catch (error) {
+      if (error instanceof TypeError) {
+        console.error("Network error or CORS issue:", error);
+        setError("Network error or CORS issue. Please check the server and try again.");
+      } else {
+        console.error("Error submitting all questions:", error);
+        setError("Failed to submit all questions. Please try again later.");
+      }
+    }
+  };
+
+  return (
+    <div className="flex justify-center items-center bg-cover bg-center bg-main-building">
+      <div className="w-full max-w-md">
+        <div className="text-gray-900 bg-gray-200 mt-8 rounded-lg overflow-hidden">
+          <div className="p-4 flex">
+            <h1 className="text-2xl">Manage Questions</h1>
+          </div>
+          <div className="px-3 py-4 flex justify-center">
+            <div className="mb-4">
+              <label htmlFor="pageSelector" className="mr-2">
+                Select Page:
+              </label>
+              <select
+                id="pageSelector"
+                value={currentPage}
+                onChange={handlePageChange}
+                className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {[1, 2, 3, 4].map((page) => (
+                  <option key={page} value={page}>
+                    Page {page}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+        {[
+          <EditFormPage1
+            key="page1"
+            questions={filteredQuestions}
+            question={question}
+            handleInputChange={handleInputChange}
+            handleDropdownChange={handleDropdownChange}
+            addDropdownChoice={addDropdownChoice}
+            removeDropdownChoice={removeDropdownChoice}
+            addQuestion={addQuestion}
+            editQuestion={editQuestion}
+            error={error}
+          />,
+          <EditFormPage2
+            key="page2"
+            questions={filteredQuestions}
+            question={question}
+            handleInputChange={handleInputChange}
+            handleDropdownChange={handleDropdownChange}
+            addDropdownChoice={addDropdownChoice}
+            removeDropdownChoice={removeDropdownChoice}
+            addQuestion={addQuestion}
+            editQuestion={editQuestion}
+            error={error}
+          />,
+          <EditFormPage3
+            key="page3"
+            questions={filteredQuestions}
+            question={question}
+            handleInputChange={handleInputChange}
+            handleDropdownChange={handleDropdownChange}
+            addDropdownChoice={addDropdownChoice}
+            removeDropdownChoice={removeDropdownChoice}
+            addQuestion={addQuestion}
+            editQuestion={editQuestion}
+            error={error}
+          />,
+          <EditFormPage4
+            key="page4"
+            questions={filteredQuestions}
+            question={question}
+            handleInputChange={handleInputChange}
+            handleDropdownChange={handleDropdownChange}
+            addDropdownChoice={addDropdownChoice}
+            removeDropdownChoice={removeDropdownChoice}
+            addQuestion={addQuestion}
+            editQuestion={editQuestion}
+            error={error}
+          />,
+        ][currentPage - 1]}
+        <div className="flex justify-center mt-4">
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            onClick={handleSubmitAllQuestions} // Updated here
+          >
+            Submit All Questions
+          </button>
+        </div>
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4">
+            {error}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default ManageQuestions;
+  
