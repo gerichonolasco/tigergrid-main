@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FC, useMemo, useState } from "react";
 import EditFormPage1 from "../components/Dashboard/EditForm/EditFormPage1";
 import EditFormPage2 from "../components/Dashboard/EditForm/EditFormPage2";
 import EditFormPage3 from "../components/Dashboard/EditForm/EditFormPage3";
@@ -11,12 +11,6 @@ interface NewQuestion {
   newDropdownChoices: string[];
   page: number;
 }
-interface EdiManageQuestion {
-  newQuestion: string;
-  newInputType: string;
-  newDropdownChoices: string[];
-  page: number; // Ensure that EditQuestion includes the page property
-}
 
 const ManageQuestions: FC = () => {
   const [error, setError] = useState<string>("");
@@ -28,30 +22,10 @@ const ManageQuestions: FC = () => {
     newDropdownChoices: [],
     page: 1,
   });
- 
-
-  useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/form/getAll");
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch questions. Server responded with status: ${response.status}`
-          );
-        }
-        const result: NewQuestion[] = await response.json();
-        setQuestions(result);
-      } catch (error) {
-        console.error("Error fetching questions:", error);
-        setError("Failed to fetch questions. Please try again later.");
-      }
-    };
-    fetchQuestions();
-  }, []);
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-    field: string // Corrected type for field parameter
+    field: string
   ) => {
     const { value } = e.target;
     setQuestion((prevQuestion) => ({
@@ -59,7 +33,6 @@ const ManageQuestions: FC = () => {
       [field]: value,
     }));
   };
-  
 
   const handleDropdownChange = (
     index: number,
@@ -123,7 +96,7 @@ const ManageQuestions: FC = () => {
           newDropdownChoices: [],
           page: currentPage,
         });
-        setError(null); // Reset error message
+        setError(""); // Reset error message
       } catch (error) {
         console.error("Error adding question:", error);
         setError("Failed to add question. Please try again later.");
@@ -135,7 +108,7 @@ const ManageQuestions: FC = () => {
 
   const editQuestion = async (index: number, updatedQuestion: NewQuestion) => {
     try {
-      const response = await fetch("http://localhost:8080/form/update", {
+      const response = await fetch("http://localhost:8080/question/update", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -161,10 +134,29 @@ const ManageQuestions: FC = () => {
         newDropdownChoices: [],
         page: currentPage,
       });
-      setError(null);
+      setError("");
     } catch (error) {
       console.error("Error updating question:", error);
       setError("Failed to update question. Please try again later.");
+    }
+  };
+
+  const deleteQuestion = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/question/delete/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to delete question. Server responded with status: ${response.status}`
+        );
+      }
+
+      setQuestions((prevQuestions) => prevQuestions.filter((q) => q.id !== id));
+    } catch (error) {
+      console.error("Error deleting question:", error);
+      setError("Failed to delete question. Please try again later.");
     }
   };
 
@@ -186,7 +178,7 @@ const ManageQuestions: FC = () => {
   const handleSubmitAllQuestions = async () => {
     
     try {
-      const response = await fetch("http://localhost:8080/form/submitAll", {
+      const response = await fetch("http://localhost:8080/question/submitAll", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -254,6 +246,7 @@ const ManageQuestions: FC = () => {
             removeDropdownChoice={removeDropdownChoice}
             addQuestion={addQuestion}
             editQuestion={editQuestion}
+            deleteQuestion={deleteQuestion}
             error={error}
           />,
           <EditFormPage2
@@ -266,6 +259,7 @@ const ManageQuestions: FC = () => {
             removeDropdownChoice={removeDropdownChoice}
             addQuestion={addQuestion}
             editQuestion={editQuestion}
+            deleteQuestion={deleteQuestion}
             error={error}
           />,
           <EditFormPage3
@@ -278,6 +272,7 @@ const ManageQuestions: FC = () => {
             removeDropdownChoice={removeDropdownChoice}
             addQuestion={addQuestion}
             editQuestion={editQuestion}
+            deleteQuestion={deleteQuestion}
             error={error}
           />,
           <EditFormPage4
@@ -290,15 +285,16 @@ const ManageQuestions: FC = () => {
             removeDropdownChoice={removeDropdownChoice}
             addQuestion={addQuestion}
             editQuestion={editQuestion}
+            deleteQuestion={deleteQuestion}
             error={error}
           />,
         ][currentPage - 1]}
         <div className="flex justify-center mt-4">
           <button
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-            onClick={handleSubmitAllQuestions} // Updated here
+            onClick={handleSubmitAllQuestions}
           >
-            Submit All Questions
+            Add Questions
           </button>
         </div>
         {error && (
@@ -312,4 +308,3 @@ const ManageQuestions: FC = () => {
 };
 
 export default ManageQuestions;
-  

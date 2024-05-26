@@ -1,8 +1,8 @@
-import React, { FC, useState, ChangeEvent, useEffect, useCallback } from "react";
-import NextButton from "../AddForm/NextButton";
+import React, { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate from react-router-dom
 
 interface AddFormProps {
-  onSubmit: (newForm: Form) => void;
+  onSubmit: (newForm: Form) => Promise<void>; // Make onSubmit return a Promise
 }
 
 interface Form {
@@ -11,17 +11,17 @@ interface Form {
   imageSource: string;
   userTypeVisibility: string[];
   visible: boolean;
-  sections: Map<number, FormSection>;
+  sections: FormSection[];
 }
 
 interface FormSection {
-  id: number;
+  id?: number;
   title: string;
   answers: FormQuestion[];
 }
 
 interface FormQuestion {
-  id: number;
+  id?: number;
   question: string;
   answer: string;
 }
@@ -31,6 +31,7 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
   const [description, setDescription] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
+  const navigate = useNavigate(); // Use useNavigate hook
 
   const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setFormTitle(event.target.value);
@@ -55,7 +56,7 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
     setIsFormValid(validateForm());
   }, [validateForm]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const newForm: Form = {
       title: formTitle,
@@ -63,20 +64,23 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
       imageSource: URL.createObjectURL(file!),
       userTypeVisibility: ["user", "admin"],
       visible: true,
-      sections: new Map([
-        [
-          1,
-          {
-            id: 1,
-            title: "Section 1",
-            answers: [], // You need to handle answers here
-          },
-        ],
-      ]),
+      sections: [
+        {
+          id: undefined, // Ensure id is undefined for new sections
+          title: "Section 1",
+          answers: [], // Handle answers here
+        },
+      ],
     };
 
-    onSubmit(newForm);
+    try {
+      await onSubmit(newForm);
+      navigate("/admin/managequestions"); // Navigate to the next page after successful submission
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   };
+
 
   return (
     <div>
@@ -133,8 +137,13 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
             onChange={handleFileChange}
           />
         </div>
-        {/* Add fields for questions here */}
-        <NextButton to="/admin/managequestions" disabled={!isFormValid} />
+        <button
+          type="submit"
+          className="w-full p-2.5 bg-blue-500 text-white rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          disabled={!isFormValid}
+        >
+          Next
+        </button>
       </form>
     </div>
   );

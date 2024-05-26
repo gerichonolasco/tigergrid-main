@@ -3,17 +3,13 @@ import EditNextButton from "./EditForm/EditNextButton";
 
 interface EditFormProps {
   form: {
+    id: number; // Make sure the form object includes an id
     title: string;
     description: string;
-    sections: Map<number, FormSection>;
+    sections: FormSection[];
   };
   onSubmit: (formData: any) => void;
 }
-
-
-
-
-
 
 interface FormSection {
   id: number;
@@ -30,7 +26,7 @@ interface FormQuestion {
 const EditForm: FC<EditFormProps> = ({ form, onSubmit }) => {
   const [formTitle, setFormTitle] = useState<string>(form.title);
   const [description, setDescription] = useState<string>(form.description);
-  const [sections, setSections] = useState<Map<number, FormSection>>(form.sections);
+  const [sections, setSections] = useState<FormSection[]>(form.sections || []);
 
   const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setFormTitle(event.target.value);
@@ -40,24 +36,12 @@ const EditForm: FC<EditFormProps> = ({ form, onSubmit }) => {
     setDescription(event.target.value);
   };
 
-  const handleQuestionChange = (event: ChangeEvent<HTMLInputElement>, sectionId: number, questionId: number) => {
-    const updatedSections = new Map(sections);
-    const section = updatedSections.get(sectionId);
-    if (section) {
-      const questionIndex = section.answers.findIndex(q => q.id === questionId);
-      if (questionIndex !== -1) {
-        section.answers[questionIndex].question = event.target.value;
-        setSections(updatedSections);
-      }
-    }
-  };
-
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = {
       title: formTitle,
       description: description,
-      sections: Array.from(sections.values()),
+      sections: sections,
     };
     onSubmit(formData);
   };
@@ -102,8 +86,7 @@ const EditForm: FC<EditFormProps> = ({ form, onSubmit }) => {
             required
           />
         </div>
-        {/* Add fields for questions here */}
-        <EditNextButton to="/admin/editmanagequestions" />
+        <EditNextButton to="/admin/editmanagequestions" formId={form.id} />
       </form>
     </div>
   );

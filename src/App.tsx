@@ -43,7 +43,7 @@ const App: FC = () => {
                         element={<ManageQuestions />}
                       />
                       <Route
-                        path="editmanagequestions"
+                        path="editmanagequestions/:formId" // Updated path with :formId parameter
                         element={<EditManageQuestions />}
                       />
                       <Route path="adminprofile" element={<AdminProfile />} />

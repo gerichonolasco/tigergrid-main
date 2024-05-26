@@ -1,22 +1,27 @@
-import React from "react";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface EditNextButtonProps {
-  to: string; // The URL to navigate to when the button is clicked
+  to: string;
+  formId: number; // Add formId as a prop
 }
 
-const NextButton: React.FC<EditNextButtonProps> = ({ to }) => {
+const EditNextButton: React.FC<EditNextButtonProps> = ({ to, formId }) => {
+  const navigate = useNavigate();
+
   const handleClick = () => {
-    window.location.href = to; // Redirect to the specified URL
+    navigate(`${to}/${formId}`);
   };
 
   return (
     <button
+      type="button"
       onClick={handleClick}
-      className="px-4 py-2 mb-3 ml-1 mt-2 text-sm text-blue-100 bg-yellow-500 rounded text-white"
+      className="px-4 py-2 bg-blue-500 text-white rounded"
     >
       Next
     </button>
   );
 };
 
-export default NextButton;
+export default EditNextButton;
