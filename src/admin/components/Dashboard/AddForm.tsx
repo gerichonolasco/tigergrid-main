@@ -139,7 +139,7 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
         </div>
         <button
           type="submit"
-          className="w-full p-2.5 bg-blue-500 text-white rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          className="w-full p-2.5 bg-yellow-500 text-white rounded-lg focus:ring-yellow-500 focus:border-yellow-500"
           disabled={!isFormValid}
         >
           Next

@@ -1,10 +1,10 @@
-import React, { FC } from "react";
-import { Link } from "react-router-dom";
+import { FC } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 const UserProfile: FC = () => {
-  // Example user data
-  const user = {
-    name: "John Doe",
+  const location = useLocation();
+  const user = location.state?.user || {
+    name: "User",
     role: "Stakeholder",
     img: "../images/ustlogo.png",
   };
@@ -12,20 +12,15 @@ const UserProfile: FC = () => {
   return (
     <div className="w-screen-xl px-4 bg-white min-h-screen flex flex-col items-center mt-12">
       <div className="max-w-md w-full bg-gray-100 rounded-lg shadow-lg overflow-hidden mt-4">
-        {/* Profile Picture */}
         <img
           className="w-full h-56 object-cover"
           src={user.img}
           alt={`${user.name}'s profile`}
         />
-
-        {/* Profile Information */}
         <div className="p-4">
           <h2 className="text-xl font-semibold">{user.name}</h2>
           <p className="text-sm text-gray-600">{user.role}</p>
         </div>
-
-        {/* Back Button */}
         <div className="p-2">
           <Link
             to="/landingpage"

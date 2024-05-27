@@ -176,7 +176,6 @@ const ManageQuestions: FC = () => {
   };
 
   const handleSubmitAllQuestions = async () => {
-    
     try {
       const response = await fetch("http://localhost:8080/question/submitAll", {
         method: "POST",
@@ -196,7 +195,7 @@ const ManageQuestions: FC = () => {
   
       // Clear questions and error state upon successful submission
       setQuestions([]);
-      setError(null);
+      setError("");
     } catch (error) {
       if (error instanceof TypeError) {
         console.error("Network error or CORS issue:", error);
@@ -209,13 +208,11 @@ const ManageQuestions: FC = () => {
   };
 
   return (
-    <div className="flex justify-center items-center bg-cover bg-center bg-main-building">
-      <div className="w-full max-w-md">
-        <div className="text-gray-900 bg-gray-200 mt-8 rounded-lg overflow-hidden">
-          <div className="p-4 flex">
+    <div className="flex justify-center items-center min-h-screen bg-gray-200">
+      <div className="w-full max-w-2xl bg-gray-300 p-6 rounded-lg">
+        <div className="text-gray-900 mt-4 rounded-lg overflow-hidden">
+          <div className="p-4 flex justify-between items-center">
             <h1 className="text-2xl">Manage Questions</h1>
-          </div>
-          <div className="px-3 py-4 flex justify-center">
             <div className="mb-4">
               <label htmlFor="pageSelector" className="mr-2">
                 Select Page:
@@ -235,66 +232,68 @@ const ManageQuestions: FC = () => {
             </div>
           </div>
         </div>
-        {[
-          <EditFormPage1
-            key="page1"
-            questions={filteredQuestions}
-            question={question}
-            handleInputChange={handleInputChange}
-            handleDropdownChange={handleDropdownChange}
-            addDropdownChoice={addDropdownChoice}
-            removeDropdownChoice={removeDropdownChoice}
-            addQuestion={addQuestion}
-            editQuestion={editQuestion}
-            deleteQuestion={deleteQuestion}
-            error={error}
-          />,
-          <EditFormPage2
-            key="page2"
-            questions={filteredQuestions}
-            question={question}
-            handleInputChange={handleInputChange}
-            handleDropdownChange={handleDropdownChange}
-            addDropdownChoice={addDropdownChoice}
-            removeDropdownChoice={removeDropdownChoice}
-            addQuestion={addQuestion}
-            editQuestion={editQuestion}
-            deleteQuestion={deleteQuestion}
-            error={error}
-          />,
-          <EditFormPage3
-            key="page3"
-            questions={filteredQuestions}
-            question={question}
-            handleInputChange={handleInputChange}
-            handleDropdownChange={handleDropdownChange}
-            addDropdownChoice={addDropdownChoice}
-            removeDropdownChoice={removeDropdownChoice}
-            addQuestion={addQuestion}
-            editQuestion={editQuestion}
-            deleteQuestion={deleteQuestion}
-            error={error}
-          />,
-          <EditFormPage4
-            key="page4"
-            questions={filteredQuestions}
-            question={question}
-            handleInputChange={handleInputChange}
-            handleDropdownChange={handleDropdownChange}
-            addDropdownChoice={addDropdownChoice}
-            removeDropdownChoice={removeDropdownChoice}
-            addQuestion={addQuestion}
-            editQuestion={editQuestion}
-            deleteQuestion={deleteQuestion}
-            error={error}
-          />,
-        ][currentPage - 1]}
+        <div className="bg-white p-4 rounded-lg">
+          {[
+            <EditFormPage1
+              key="page1"
+              questions={filteredQuestions}
+              question={question}
+              handleInputChange={handleInputChange}
+              handleDropdownChange={handleDropdownChange}
+              addDropdownChoice={addDropdownChoice}
+              removeDropdownChoice={removeDropdownChoice}
+              addQuestion={addQuestion}
+              editQuestion={editQuestion}
+              deleteQuestion={deleteQuestion}
+              error={error}
+            />,
+            <EditFormPage2
+              key="page2"
+              questions={filteredQuestions}
+              question={question}
+              handleInputChange={handleInputChange}
+              handleDropdownChange={handleDropdownChange}
+              addDropdownChoice={addDropdownChoice}
+              removeDropdownChoice={removeDropdownChoice}
+              addQuestion={addQuestion}
+              editQuestion={editQuestion}
+              deleteQuestion={deleteQuestion}
+              error={error}
+            />,
+            <EditFormPage3
+              key="page3"
+              questions={filteredQuestions}
+              question={question}
+              handleInputChange={handleInputChange}
+              handleDropdownChange={handleDropdownChange}
+              addDropdownChoice={addDropdownChoice}
+              removeDropdownChoice={removeDropdownChoice}
+              addQuestion={addQuestion}
+              editQuestion={editQuestion}
+              deleteQuestion={deleteQuestion}
+              error={error}
+            />,
+            <EditFormPage4
+              key="page4"
+              questions={filteredQuestions}
+              question={question}
+              handleInputChange={handleInputChange}
+              handleDropdownChange={handleDropdownChange}
+              addDropdownChoice={addDropdownChoice}
+              removeDropdownChoice={removeDropdownChoice}
+              addQuestion={addQuestion}
+              editQuestion={editQuestion}
+              deleteQuestion={deleteQuestion}
+              error={error}
+            />,
+          ][currentPage - 1]}
+        </div>
         <div className="flex justify-center mt-4">
           <button
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
             onClick={handleSubmitAllQuestions}
           >
-            Add Questions
+            Submit All Questions
           </button>
         </div>
         {error && (

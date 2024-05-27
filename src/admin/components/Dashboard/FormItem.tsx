@@ -1,8 +1,7 @@
-import React, { FC } from "react";
+import { FC } from "react";
 
 interface FormItemProps {
   title: string;
-  img: string;
   content: string;
   showOnUserSide: boolean;
   toggleShowOnUserSide: () => void;
@@ -13,7 +12,6 @@ interface FormItemProps {
 
 const FormItem: FC<FormItemProps> = ({
   title,
-  img,
   content,
   showOnUserSide,
   toggleShowOnUserSide,
@@ -22,9 +20,8 @@ const FormItem: FC<FormItemProps> = ({
   onDelete, // Include onDelete prop
 }) => {
   return (
-    <div className="border border-gray-300 rounded p-4">
-      <h2 className="text-xl font-bold mb-2">{title}</h2>
-      <img src={img} alt={title} className="mb-2" />
+    <div className="border border-gray-300 rounded p-3">
+      <h2 className="text-xl font-bold mb-3">{title}</h2>
       <p className="mb-2">{content}</p>
       <div className="flex justify-between items-center">
         <button
