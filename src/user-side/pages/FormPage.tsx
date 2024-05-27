@@ -1,4 +1,5 @@
-import React, { FC, useState, ChangeEvent, useEffect } from "react";
+import { ChangeEvent, FC, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import FormComponent from "../components/FormPage/FormComponent";
 
 interface Choice {
@@ -6,9 +7,11 @@ interface Choice {
 }
 
 interface FormQuestion {
-  question: string;
-  choices: Choice[];
-  type?: 'text' | 'radio' | 'dropdown';
+  id: number;
+  newQuestion: string;
+  newDropdownChoices: Choice[];
+  newInputType: 'text' | 'radio' | 'dropdown';
+  sectionTitle: string;
 }
 
 interface CustomAnswer {
@@ -27,42 +30,51 @@ interface FormSection {
 }
 
 const FormPage: FC = () => {
+  const { formId } = useParams<{ formId: string }>();
   const [currentPage, setCurrentPage] = useState(1);
   const [formSections, setFormSections] = useState<FormSection[]>([]);
   const [isNextEnabled, setIsNextEnabled] = useState(false);
 
   useEffect(() => {
-    fetchFormSections();
-  }, []);
+    if (formId) {
+      fetchFormSections(formId);
+    }
+  }, [formId]);
 
-  const fetchFormSections = async () => {
-    // Simulate fetching data from backend
+  const fetchFormSections = async (formId: string) => {
     try {
-      const simulatedFormSections: FormSection[] = [
-        {
-          title: "Section 1",
-          dropdowns: new Map(),
-          questions: new Map([
-            [0, { question: "Question 1?", choices: [{ choice: "Choice 1" }, { choice: "Choice 2" }], type: 'dropdown' }],
-            [1, { question: "Question 2?", choices: [] }]
-          ]),
-          customAnswer: new Map()
-        },
-        {
-          title: "Section 2",
-          dropdowns: new Map(),
-          questions: new Map([
-            [0, { question: "Question 3?", choices: [{ choice: "Choice A" }, { choice: "Choice B" }], type: 'dropdown' }],
-            [1, { question: "Question 4?", choices: [{ choice: "5" }, { choice: "4" }, { choice: "3" }, { choice: "2" }, { choice: "1" }], type: 'radio' }]
-          ]),
-          customAnswer: new Map()
-        }
-      ];
-      // Replace the above with actual API call to fetch data
-      setFormSections(simulatedFormSections); // Using simulated data for now
+      const response = await fetch(`http://localhost:8080/form/getFormWithQuestions/${formId}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch questions. Status: ${response.status}`);
+      }
+      const form = await response.json();
+      const sections: FormSection[] = processQuestionsIntoSections(form.sections);
+      setFormSections(sections);
     } catch (error) {
       console.error("Error fetching form sections:", error);
     }
+  };
+
+  const processQuestionsIntoSections = (sectionsData: any[]): FormSection[] => {
+    return sectionsData.map(sectionData => {
+      const questionsMap = new Map<number, FormQuestion>();
+      sectionData.questions.forEach((question: any) => {
+        questionsMap.set(question.id, {
+          id: question.id,
+          newQuestion: question.newQuestion,
+          newDropdownChoices: question.newDropdownChoices.map((choice: string) => ({ choice })),
+          newInputType: question.newInputType,
+          sectionTitle: sectionData.title
+        });
+      });
+
+      return {
+        title: sectionData.title,
+        dropdowns: new Map(),
+        questions: questionsMap,
+        customAnswer: new Map()
+      };
+    });
   };
 
   const handleInputChange = (
@@ -87,7 +99,7 @@ const FormPage: FC = () => {
     const updatedSections = [...formSections];
     const question = updatedSections[currentPage - 1].questions.get(questionIndex);
     if (question) {
-      question.choices[choiceIndex].choice = e.target.value;
+      question.newDropdownChoices[choiceIndex].choice = e.target.value;
       updatedSections[currentPage - 1] = {
         ...updatedSections[currentPage - 1],
         questions: new Map(updatedSections[currentPage - 1].questions),
@@ -110,7 +122,6 @@ const FormPage: FC = () => {
 
   const handleSubmit = () => {
     if (isNextEnabled) {
-      // Submit form logic
       console.log("Form submitted:", formSections);
     }
   };

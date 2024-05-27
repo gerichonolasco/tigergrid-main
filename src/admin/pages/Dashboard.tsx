@@ -130,7 +130,7 @@ const Dashboard: FC = () => {
       })
       .catch((error: unknown) => {
         console.error("Error deleting form:", error);
-        alert("Failed to delete form. Please try again.");
+        alert("Please delete all questions before deleting form.");
       });
   };
 

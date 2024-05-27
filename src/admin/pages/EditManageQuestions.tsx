@@ -1,5 +1,5 @@
 import { ChangeEvent, FC, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import EditFormPage1 from "../components/Dashboard/EditForm/EditFormPage1";
 import EditFormPage2 from "../components/Dashboard/EditForm/EditFormPage2";
 import EditFormPage3 from "../components/Dashboard/EditForm/EditFormPage3";
@@ -11,11 +11,12 @@ interface NewQuestion {
   newInputType: string;
   newDropdownChoices: string[];
   page: number;
-  formId?: number; // Add formId here
+  formId?: number;
 }
 
 const EditManageQuestions: FC = () => {
   const { formId } = useParams<{ formId: string }>();
+  const navigate = useNavigate();
   const [error, setError] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [questions, setQuestions] = useState<NewQuestion[]>([]);
@@ -24,7 +25,7 @@ const EditManageQuestions: FC = () => {
     newInputType: "",
     newDropdownChoices: [],
     page: 1,
-    formId: formId ? parseInt(formId) : undefined, // Initialize formId here
+    formId: formId ? parseInt(formId) : undefined,
   });
 
   useEffect(() => {
@@ -116,7 +117,7 @@ const EditManageQuestions: FC = () => {
           newInputType: "",
           newDropdownChoices: [],
           page: currentPage,
-          formId: formId ? parseInt(formId) : undefined, // Ensure formId is set
+          formId: formId ? parseInt(formId) : undefined,
         });
         setError(""); // Reset error message
       } catch (error) {
@@ -153,7 +154,7 @@ const EditManageQuestions: FC = () => {
         newInputType: "",
         newDropdownChoices: [],
         page: currentPage,
-        formId: formId ? parseInt(formId) : undefined, // Ensure formId is set
+        formId: formId ? parseInt(formId) : undefined,
       });
       setError("");
     } catch (error) {
@@ -191,7 +192,7 @@ const EditManageQuestions: FC = () => {
       newInputType: "",
       newDropdownChoices: [],
       page: Number(e.target.value),
-      formId: formId ? parseInt(formId) : undefined, // Ensure formId is set
+      formId: formId ? parseInt(formId) : undefined,
     }); // Reset the question state for the new page
   };
 
@@ -213,7 +214,7 @@ const EditManageQuestions: FC = () => {
 
       // Clear questions and error state upon successful submission
       setQuestions([]);
-      setError(null);
+      setError("");
     } catch (error) {
       if (error instanceof TypeError) {
         console.error("Network error or CORS issue:", error);
@@ -309,9 +310,9 @@ const EditManageQuestions: FC = () => {
         <div className="flex justify-center mt-4">
           <button
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-            onClick={handleSubmitAllQuestions}
+            onClick={() => navigate("/admin/dashboard")}
           >
-            Add Questions
+            Back to Home
           </button>
         </div>
         {error && (
