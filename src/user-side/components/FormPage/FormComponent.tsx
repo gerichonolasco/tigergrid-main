@@ -1,13 +1,14 @@
-import React, { FC, ChangeEvent, useState, useEffect } from "react";
+import { ChangeEvent, FC, useEffect } from "react";
 
 interface Choice {
   choice: string;
 }
 
 interface FormQuestion {
-  question: string;
+  id: number;
+  newQuestion: string;
   choices: Choice[];
-  type?: 'text' | 'radio' | 'dropdown';
+  type: 'text' | 'radio' | 'dropdown';
 }
 
 interface CustomAnswer {
@@ -71,7 +72,7 @@ const FormComponent: FC<FormComponentProps> = ({
       <h2 className="text-2xl font-bold mb-4">{formSection.title}</h2>
       {Array.from(formSection.questions.entries()).map(([index, question]) => (
         <div key={index} className="question-block mb-6">
-          <p className="text-lg mb-2">{question.question}</p>
+          <p className="text-lg mb-2">{question.newQuestion}</p>
           {question.type === 'dropdown' ? (
             <select
               data-index={index}
