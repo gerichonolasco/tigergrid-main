@@ -59,22 +59,23 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const newForm: Form = {
-      title: formTitle,
-      description: description,
-      imageSource: URL.createObjectURL(file!),
-      userTypeVisibility: ["user", "admin"],
-      visible: true,
-      sections: [
-        {
-          id: undefined, // Ensure id is undefined for new sections
-          title: "Section 1",
-          answers: [], // Handle answers here
-        },
-      ],
+        title: formTitle,
+        description: description,
+        imageSource: URL.createObjectURL(file!),
+        userTypeVisibility: ["user", "admin"],
+        visible: true,
+        sections: [
+            {
+                id: undefined,
+                title: formTitle, // Use formTitle for the section title for better context
+                answers: [],
+            },
+        ],
     };
 
-    navigate("/admin/managequestions", { state: { form: newForm } }); // Pass form state to the next page
-  };
+    navigate("/admin/managequestions", { state: { form: newForm } });
+};
+
 
   return (
     <div>

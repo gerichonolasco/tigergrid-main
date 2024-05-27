@@ -77,33 +77,31 @@ const Dashboard: FC = () => {
       });
   };
 
-	const submitForm = async (form: Form) => {
-		try {
-		console.log("Form to be submitted:", form);
-		const response = await fetch("http://localhost:8080/form/create", {
-			method: "POST",
-			headers: {
-			"Content-Type": "application/json",
-			},
-			body: JSON.stringify(form),
-		});
-	
-		if (!response.ok) {
-			throw new Error(
-			"Failed to submit form. Server responded with status: " +
-				response.status
-			);
-		}
-	
-		const result = await response.json();
-		console.log("Form submitted successfully:", result);
-		return result;
-		} catch (error) {
-		console.error("Error submitting form:", error);
-		}
-	};
-	
+  const submitForm = async (form: Form) => {
+    try {
+      console.log("Form to be submitted:", form);
+      const response = await fetch("http://localhost:8080/form/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
 
+      if (!response.ok) {
+        throw new Error(
+          "Failed to submit form. Server responded with status: " +
+            response.status
+        );
+      }
+
+      const result = await response.json();
+      console.log("Form submitted successfully:", result);
+      return result;
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
+  };
 
   const addForm = async (newForm: Form) => {
     const result = await submitForm(newForm);
@@ -126,15 +124,13 @@ const Dashboard: FC = () => {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error(
-            "Failed to delete form. Server responded with status: " +
-              response.status
-          );
+          return response.text().then(text => { throw new Error(text) });
         }
         setForms(forms.filter((form) => form.id !== id));
       })
       .catch((error: unknown) => {
         console.error("Error deleting form:", error);
+        alert("Failed to delete form. Please try again.");
       });
   };
 

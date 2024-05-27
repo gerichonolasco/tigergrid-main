@@ -1,5 +1,5 @@
 import { ChangeEvent, FC, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import EditFormPage1 from "../components/Dashboard/EditForm/EditFormPage1";
 import EditFormPage2 from "../components/Dashboard/EditForm/EditFormPage2";
 import EditFormPage3 from "../components/Dashboard/EditForm/EditFormPage3";
@@ -30,6 +30,7 @@ interface Form {
 
 const ManageQuestions: FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const initialForm = location.state.form as Form;
 
   const [error, setError] = useState<string>("");
@@ -196,43 +197,62 @@ const ManageQuestions: FC = () => {
 
   const handleSubmitAllQuestions = async () => {
     const updatedForm = {
-      ...initialForm,
-      sections: initialForm.sections.map((section, index) => ({
-        ...section,
-        answers: questions.filter(q => q.page === index + 1)
-      }))
+        ...initialForm,
+        sections: initialForm.sections.map((section, index) => ({
+            ...section,
+            answers: questions.filter((q) => q.page === index + 1),
+        })),
     };
 
     try {
-      const response = await fetch("http://localhost:8080/form/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedForm),
-      });
-  
-      if (!response.ok) {
-        throw new Error(
-          `Failed to submit all questions. Server responded with status: ${response.status}`
-        );
-      }
-  
-      console.log("All questions submitted successfully!");
-  
-      // Clear questions and error state upon successful submission
-      setQuestions([]);
-      setError("");
+        const response = await fetch("http://localhost:8080/form/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedForm),
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                `Failed to submit all questions. Server responded with status: ${response.status}`
+            );
+        }
+
+        const savedForm = await response.json();
+
+        // Update questions with the correct form ID
+        const updatedQuestions = questions.map((q) => ({
+            ...q,
+            form: { id: savedForm.id },
+        }));
+
+        await fetch("http://localhost:8080/question/submitAll", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedQuestions),
+        });
+
+        console.log("All questions submitted successfully!");
+
+        // Navigate to FormResponse page
+        navigate("/admin/formresponse", { state: { form: savedForm } });
+
+        setQuestions([]);
+        setError("");
     } catch (error) {
-      if (error instanceof TypeError) {
-        console.error("Network error or CORS issue:", error);
-        setError("Network error or CORS issue. Please check the server and try again.");
-      } else {
-        console.error("Error submitting all questions:", error);
-        setError("Failed to submit all questions. Please try again later.");
-      }
+        if (error instanceof TypeError) {
+            console.error("Network error or CORS issue:", error);
+            setError("Network error or CORS issue. Please check the server and try again.");
+        } else {
+            console.error("Error submitting all questions:", error);
+            setError("Failed to submit all questions. Please try again later.");
+        }
     }
-  };
+};
+
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-200">
