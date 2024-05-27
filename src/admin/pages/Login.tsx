@@ -12,14 +12,23 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // State for loading indicator
   const navigate = useNavigate(); // Use useNavigate hook
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true); // Start loading
+    setError(""); // Clear previous errors
+
     try {
+      console.log("Attempting login with:", username, password);
       const response = await fetch(`http://localhost:8080/user/login/${username}/${password}`);
+      console.log("Response status:", response.status);
+      
       if (response.ok) {
         const user = await response.json();
+        console.log("Login successful, user:", user);
+
         if (user) {
           console.log("User type:", user.type); // Debugging: Check the user's type
           if (user.type === "USER") {
@@ -30,13 +39,20 @@ const Login = () => {
             setError("Invalid user type.");
           }
         } else {
-          setError("Invalid credentials. Please try again.");
+          setError("User not available. Please try again.");
         }
       } else {
-        setError("Invalid credentials. Please try again.");
+        if (response.status === 401) {
+          setError("Invalid credentials. Please try again.");
+        } else {
+          setError("An unexpected error occurred. Please try again.");
+        }
       }
     } catch (error) {
+      console.error("An error occurred while logging in:", error);
       setError("An error occurred while logging in");
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
@@ -78,8 +94,9 @@ const Login = () => {
             <button
               type="submit"
               className="bg-yellow-500 text-black px-4 py-2 rounded mt-4 hover:bg-yellow-600 w-full"
+              disabled={loading} // Disable button when loading
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
             <p className="mt-2">
               Don't have an account?{" "}
