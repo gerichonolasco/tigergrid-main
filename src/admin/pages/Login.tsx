@@ -22,10 +22,12 @@ const Login = () => {
         const user = await response.json();
         if (user) {
           console.log("User type:", user.type); // Debugging: Check the user's type
-          if (user.type === "Admin") {
-            navigate("/admin/dashboard", { state: { admin } });
-          } else {
+          if (user.type === "USER") {
             navigate("/landingpage", { state: { user } });
+          } else if (user.type === "ADMIN") {
+            navigate("/admin/dashboard", { state: { user } });
+          } else {
+            setError("Invalid user type.");
           }
         } else {
           setError("Invalid credentials. Please try again.");

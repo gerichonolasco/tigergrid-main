@@ -56,7 +56,7 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
     setIsFormValid(validateForm());
   }, [validateForm]);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const newForm: Form = {
       title: formTitle,
@@ -73,14 +73,8 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
       ],
     };
 
-    try {
-      await onSubmit(newForm);
-      navigate("/admin/managequestions"); // Navigate to the next page after successful submission
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
+    navigate("/admin/managequestions", { state: { form: newForm } }); // Pass form state to the next page
   };
-
 
   return (
     <div>

@@ -1,4 +1,5 @@
 import { ChangeEvent, FC, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import EditFormPage1 from "../components/Dashboard/EditForm/EditFormPage1";
 import EditFormPage2 from "../components/Dashboard/EditForm/EditFormPage2";
 import EditFormPage3 from "../components/Dashboard/EditForm/EditFormPage3";
@@ -12,7 +13,25 @@ interface NewQuestion {
   page: number;
 }
 
+interface FormSection {
+  id?: number;
+  title: string;
+  answers: NewQuestion[];
+}
+
+interface Form {
+  title: string;
+  description: string;
+  imageSource: string;
+  userTypeVisibility: string[];
+  visible: boolean;
+  sections: FormSection[];
+}
+
 const ManageQuestions: FC = () => {
+  const location = useLocation();
+  const initialForm = location.state.form as Form;
+
   const [error, setError] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [questions, setQuestions] = useState<NewQuestion[]>([]);
@@ -176,13 +195,21 @@ const ManageQuestions: FC = () => {
   };
 
   const handleSubmitAllQuestions = async () => {
+    const updatedForm = {
+      ...initialForm,
+      sections: initialForm.sections.map((section, index) => ({
+        ...section,
+        answers: questions.filter(q => q.page === index + 1)
+      }))
+    };
+
     try {
-      const response = await fetch("http://localhost:8080/question/submitAll", {
+      const response = await fetch("http://localhost:8080/form/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(questions),
+        body: JSON.stringify(updatedForm),
       });
   
       if (!response.ok) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 interface ResponseAnswer {
   question: String,
@@ -32,7 +32,7 @@ const ManageUsers = () => {
     lastName: "",
     email: "",
     password: "",
-    type: "USER",
+    type: "",
     responses: []
   });
 
@@ -82,7 +82,7 @@ const ManageUsers = () => {
       lastName: "",
       email: "",
       password: "",
-      type: "USER",
+      type: "",
       responses: []
     });
   };

@@ -23,7 +23,7 @@ const AdminProfile: FC = () => {
         </div>
         <div className="p-2">
           <Link
-            to="/landingpage"
+            to="/admin/dashboard"
             className="block w-1/2 mx-auto bg-yellow-400 hover:bg-yellow-500 text-white text-center font-semibold py-2 rounded"
           >
             Back to Home
