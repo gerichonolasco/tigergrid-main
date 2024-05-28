@@ -1,7 +1,34 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const SideNavbarUser: React.FC = () => {
+  const navigate = useNavigate()
+
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    
+    try {
+      fetch("http://localhost:8080/user/logout", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(
+            "Logout failed. Server responded with status: " + response.status
+          );
+        }
+        alert("Logout successful!");
+        navigate('/login')
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  }
+
   return (
     <>
       <nav
@@ -69,7 +96,8 @@ const SideNavbarUser: React.FC = () => {
           </ul>
           {/* Added a logout button at the bottom */}
           <div className="absolute bottom-0 left-0 w-full p-4 ml-12">
-            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mb-6">
+            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mb-6"
+            onClick={handleLogout}>
               Sign Out
             </button>
           </div>

@@ -5,6 +5,66 @@ import EditForm from "../components/Dashboard/EditForm";
 import FormItem from "../components/Dashboard/FormItem";
 import FormResponse from "../components/Dashboard/FormResponse";
 
+interface FormData {
+  id: number;
+  title: string;
+  description: string;
+  visible: boolean;
+  sections: {
+    id: number;
+    title: string;
+    dropdowns: {
+      id: number;
+      newQuestion: string;
+      newInputType: string;
+      newDropdownChoices: string[];
+      page: number;
+      placeholder: string | null;
+    }[];
+    questions: {
+      id: number;
+      newQuestion: string;
+      newInputType: string;
+      newDropdownChoices: string[];
+      page: number;
+    }[];
+    customAnswers: any[];
+  }[];
+}
+
+interface FormSectionProps {
+  section: FormData['sections'][0];
+}
+
+const FormSection: React.FC<FormSectionProps> = ({ section }) => {
+  return (
+    <div>
+      <h2>{section.title}</h2>
+      <ul>
+        {section.dropdowns.map((dropdown) => (
+          <li key={dropdown.id}>
+            <strong>Dropdown:</strong> {dropdown.newQuestion}
+            <ul>
+              {dropdown.newDropdownChoices.map((choice) => (
+                <li key={choice}>{choice}</li>
+              ))}
+            </ul>
+          </li>
+        ))}
+        {section.questions.map((question) => (
+          <li key={question.id}>
+            <strong>Question:</strong> {question.newQuestion}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+interface FormProps {
+  data: FormData;
+}
+
 interface Form {
   id?: number;
   title: string;
@@ -15,14 +75,29 @@ interface Form {
   sections: FormSection[];
 }
 
-interface FormSection {
-  id?: number; // Allow id to be optional for new sections
+type FormSection = {
+  id?: number;
   title: string;
-  answers: FormQuestion[];
+  dropdowns: FormDropdown[];
+  customAnswers: CustomAnswer[];
+  questions: FormQuestion[]; // Add the questions property
+};
+
+interface FormDropdown {
+  id: number;
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number;
+  placeholder: string | null;
 }
 
+type CustomAnswer = {
+  answer: string;
+};
+
 interface FormQuestion {
-  id?: number; // Allow id to be optional for new questions
+  id?: number;
   question: string;
   answer: string;
 }
@@ -52,29 +127,31 @@ const Dashboard: FC = () => {
       });
   }, []);
 
-  const toggleVisibility = (index: number) => {
+  const toggleVisibility = async (index: number) => {
     const updatedForm = { ...forms[index], visible: !forms[index].visible };
-    fetch("http://localhost:8080/form/update", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedForm),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(
-            "Failed to update form visibility. Server responded with status: " +
-              response.status
-          );
-        }
-        const updatedForms = [...forms];
-        updatedForms[index] = updatedForm;
-        setForms(updatedForms);
-      })
-      .catch((error: unknown) => {
-        console.error("Error updating form visibility:", error);
+    const endpoint = !updatedForm.visible ? 'http://localhost:8080/form/hide' : 'http://localhost:8080/form/show';
+    const url = `${endpoint}/${updatedForm.id}`;
+  
+    try {
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+  
+      if (!response.ok) {
+        throw new Error(
+          `Failed to update form visibility. Server responded with status: ${response.status}`
+        );
+      }
+  
+      const updatedForms = [...forms];
+      updatedForms[index] = updatedForm;
+      setForms(updatedForms);
+    } catch (error) {
+      console.error("Error updating form visibility:", error);
+    }
   };
 
   const submitForm = async (form: Form) => {
@@ -148,6 +225,8 @@ const Dashboard: FC = () => {
       }
       const updatedForm: Form = await response.json();
 
+      console.log(updatedForm)
+
       const updatedForms = [...forms];
       updatedForms[index] = updatedForm;
 
@@ -215,8 +294,15 @@ const Dashboard: FC = () => {
               <div>Loading...</div>
             ) : (
               <FormResponse
-                formTitle={forms[viewingFormIndex!].title}
-                sections={forms[viewingFormIndex!].sections || []}
+                id={forms[viewingFormIndex!].id}
+                title={forms[viewingFormIndex!].title}
+                sections={forms[viewingFormIndex!]?.sections?.map((section, index) => ({
+                  id: index,
+                  title: section.title,
+                  questions: section.questions || [],
+                  dropdowns: Array.from(section.dropdowns.values()),
+                  customAnswers: Array.from(section.customAnswers.values())
+                })) || []}
                 users={users}
                 onClose={closeFormResponse}
               />

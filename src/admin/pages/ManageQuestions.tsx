@@ -11,6 +11,7 @@ interface NewQuestion {
   newInputType: string;
   newDropdownChoices: string[];
   page: number;
+  formId?: number;
 }
 
 interface FormSection {
@@ -41,6 +42,7 @@ const ManageQuestions: FC = () => {
     newInputType: "",
     newDropdownChoices: [],
     page: 1,
+    formId: 1,
   });
 
   const handleInputChange = (
@@ -221,24 +223,29 @@ const ManageQuestions: FC = () => {
 
         const savedForm = await response.json();
 
-        // Update questions with the correct form ID
         const updatedQuestions = questions.map((q) => ({
-            ...q,
-            form: { id: savedForm.id },
+          ...q,
+          form: { id: savedForm.id },
+          form_id: savedForm.id,
         }));
 
-        await fetch("http://localhost:8080/question/submitAll", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(updatedQuestions),
-        });
+        console.log(savedForm.id);
+
+        const textQuestions = updatedQuestions.filter(q => q.newInputType === 'Text');
+        const dropdownQuestions = updatedQuestions.filter(q => q.newInputType === 'Dropdown');
+        const customAnswerQuestions = updatedQuestions.filter(q => q.newInputType === 'Custom Answers');
+        
+        console.log(textQuestions, dropdownQuestions, customAnswerQuestions);
+
+        await Promise.all([
+            submitQuestionsToTable(textQuestions, "http://localhost:8080/question/submitText"),
+            submitQuestionsToTable(dropdownQuestions, "http://localhost:8080/question/submitDropdown"),
+            submitQuestionsToTable(customAnswerQuestions, "http://localhost:8080/question/submitCustomAnswers")
+        ]);
 
         console.log("All questions submitted successfully!");
 
-        // Navigate to FormResponse page
-        navigate("/admin/formresponse", { state: { form: savedForm } });
+        navigate("/admin/dashboard", { state: { form: savedForm } });
 
         setQuestions([]);
         setError("");
@@ -251,8 +258,27 @@ const ManageQuestions: FC = () => {
             setError("Failed to submit all questions. Please try again later.");
         }
     }
-};
+  };
 
+const submitQuestionsToTable = async (questions, url) => {
+    if (questions.length === 0) return;
+
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(questions),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to submit questions to ${url}. Server responded with status: ${response.status}`);
+        }
+    } catch (error) {
+        throw new Error(`Error submitting questions to ${url}: ${error.message}`);
+    }
+};
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-200">

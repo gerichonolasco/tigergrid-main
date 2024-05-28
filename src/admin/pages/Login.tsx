@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import Link and useNavigate from React Router
 
 const Login = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // State for loading indicator
+  const navigate = useNavigate(); // Use useNavigate hook
+
   useEffect(() => {
     document.body.classList.add("login-page-body");
     return () => {
@@ -9,11 +15,32 @@ const Login = () => {
     };
   }, []);
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // State for loading indicator
-  const navigate = useNavigate(); // Use useNavigate hook
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/user/getLoggedIn', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch login status');
+        }
+
+        const user = await response.json();
+        if (user) {
+          navigate('/landingpage');
+        }
+      } catch (error) {
+        console.error('Error checking login status:', error);
+        navigate('/login');
+      }
+    };
+
+    checkLoginStatus();
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
