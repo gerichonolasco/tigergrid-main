@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 
 const DataPrivacySF: FC = () => {
   return (
+// hi hellow
+
     <div className="w-screen-xl px-4 bg-white min-h-screen flex flex-col items-center justify-center">
       {/* Stepper Component */}
       <div className="flex justify-center">
