@@ -75,7 +75,7 @@ const EditFormPage3: FC<EditFormPage3Props> = ({
   return (
     <div className="text-gray-900 bg-gray-200">
       <div className="p-4 flex">
-        <h1 className="text-2xl">Page 1</h1>
+        <h1 className="text-2xl">Page 3</h1>
       </div>
       <div className="px-3 py-4 flex justify-center">
         <table className="w-full text-md bg-white shadow-md rounded mb-4">

@@ -3,7 +3,7 @@ import EditNextButton from "./EditForm/EditNextButton";
 
 interface EditFormProps {
   form: {
-    id: number; // Make sure the form object includes an id
+    id: number;
     title: string;
     description: string;
     sections: FormSection[];

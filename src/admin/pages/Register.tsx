@@ -8,7 +8,12 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSignUp = (e) => {
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+  };
+
+  const handleSignUp = async (e) => {
     e.preventDefault();
 
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
@@ -16,7 +21,7 @@ const Register = () => {
       return;
     }
 
-    if (!email.includes("@")) {
+    if (!validateEmail(email)) {
       setError("Please enter a valid email address.");
       return;
     }
@@ -26,29 +31,44 @@ const Register = () => {
       return;
     }
 
-    // If all validations pass, continue with registration
-    setError("");
-    fetch("http://localhost:8080/user/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        firstName,
-        lastName,
-        email,
-        password,
-        type: "USER"
-      })
-    })
-    .then(() => {
+    try {
+      const response = await fetch(`http://localhost:8080/user/check-email?email=${email}`);
+      const data = await response.json();
+
+      if (data.exists) {
+        setError("Email already exists. Please use a different email.");
+        return;
+      }
+
+      // If all validations pass, continue with registration
+      setError("");
+      await fetch("http://localhost:8080/user/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          password,
+          type: "USER",
+        }),
+      });
+
       alert("Registration successful!");
-    })
-    .catch(() => {
+    } catch (error) {
       setError("Registration failed. Please try again.");
-    });
+    }
   };
 
   return (
-    <div style={{backgroundImage: "url('/images/mainbldg.png')", height: "100vh", backgroundSize: "cover", backgroundPosition: "center"}}>
+    <div
+      style={{
+        backgroundImage: "url('/images/mainbldg.png')",
+        height: "100vh",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       <div className="flex justify-center items-center min-h-screen">
         <div className="container w-full md:w-3/4 lg:w-2/3 xl:w-1/2 bg-white p-8 rounded-lg shadow-md">
           <div className="flex justify-center mb-6">
@@ -58,7 +78,9 @@ const Register = () => {
             <h1 className="text-center text-2xl font-bold mb-4">Sign Up</h1>
             {error && <p className="text-red-500 mb-4">{error}</p>}
             <div className="flex flex-col w-full">
-              <label className="mb-2">First Name<span className="text-red-500">*</span>:</label>
+              <label className="mb-2">
+                First Name<span className="text-red-500">*</span>:
+              </label>
               <input
                 type="text"
                 value={firstName}
@@ -68,7 +90,9 @@ const Register = () => {
               />
             </div>
             <div className="flex flex-col w-full mt-4">
-              <label className="mb-2">Last Name<span className="text-red-500">*</span>:</label>
+              <label className="mb-2">
+                Last Name<span className="text-red-500">*</span>:
+              </label>
               <input
                 type="text"
                 value={lastName}
@@ -78,7 +102,9 @@ const Register = () => {
               />
             </div>
             <div className="flex flex-col w-full mt-4">
-              <label className="mb-2">Email<span className="text-red-500">*</span>:</label>
+              <label className="mb-2">
+                Email<span className="text-red-500">*</span>:
+              </label>
               <input
                 type="email"
                 value={email}
@@ -88,7 +114,9 @@ const Register = () => {
               />
             </div>
             <div className="flex flex-col w-full mt-4">
-              <label className="mb-2">Password<span className="text-red-500">*</span>:</label>
+              <label className="mb-2">
+                Password<span className="text-red-500">*</span>:
+              </label>
               <input
                 type="password"
                 value={password}

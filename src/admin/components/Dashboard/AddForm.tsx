@@ -45,7 +45,7 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
   const [description, setDescription] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
-  const navigate = useNavigate(); // Use useNavigate hook
+  const navigate = useNavigate();
 
   const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setFormTitle(event.target.value);
