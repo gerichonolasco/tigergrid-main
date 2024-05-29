@@ -2,31 +2,40 @@ import { ChangeEvent, FC, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import FormComponent from "../components/FormPage/FormComponent";
 
-interface Choice {
-  choice: string;
-}
-
 interface FormQuestion {
   id: number;
   newQuestion: string;
-  newDropdownChoices: Choice[];
-  newInputType: 'text' | 'radio' | 'dropdown';
-  sectionTitle: string;
+  newDropdownChoices: string[];
+  newInputType: 'text' | 'radio button' | 'dropdown';
 }
 
-interface CustomAnswer {
-  answer: string;
-}
+type FormSection = {
+  id?: number;
+  title: string;
+  dropdowns: FormDropdown[];
+  customAnswers: CustomAnswer[];
+  questions: FormQuestion[];
+};
 
 interface FormDropdown {
-  placeholder: string;
+  id: number;
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number;
+  placeholder: string | null;
 }
 
-interface FormSection {
+type CustomAnswer = {
+  answer: string;
+};
+
+interface Form {
+  id: number;
   title: string;
-  dropdowns: Map<number, FormDropdown>;
-  questions: Map<number, FormQuestion>;
-  customAnswer: Map<number, CustomAnswer>;
+  description: string;
+  visible: boolean;
+  sections: FormSection[];
 }
 
 const FormPage: FC = () => {
@@ -34,6 +43,7 @@ const FormPage: FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [formSections, setFormSections] = useState<FormSection[]>([]);
   const [isNextEnabled, setIsNextEnabled] = useState(false);
+  const [isVisible, setIsVisible] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (formId) {
@@ -47,65 +57,59 @@ const FormPage: FC = () => {
       if (!response.ok) {
         throw new Error(`Failed to fetch questions. Status: ${response.status}`);
       }
-      const form = await response.json();
-      const sections: FormSection[] = processQuestionsIntoSections(form.sections);
-      setFormSections(sections);
+      const form: Form = await response.json();
+      console.log("Form:", form);
+      setIsVisible(form.visible);
+
+      if (form.visible) {
+        const sections: FormSection[] = form.sections.map((section: any) => ({
+          id: section.id,
+          title: section.title,
+          dropdowns: section.dropdowns.map((dropdown: any) => ({
+            id: dropdown.id,
+            newQuestion: dropdown.newQuestion,
+            newInputType: dropdown.newInputType.toLowerCase() as 'text' | 'radio button' | 'dropdown',
+            newDropdownChoices: dropdown.newDropdownChoices,
+          })),
+          questions: section.questions.map((question: any) => ({
+            id: question.id,
+            newQuestion: question.newQuestion,
+            newDropdownChoices: question.newDropdownChoices,
+            newInputType: question.newInputType.toLowerCase() as 'text' | 'radio button' | 'dropdown',
+          })),
+          customAnswers: section.questions.map(() => ({ answer: '' })),
+        }));
+        setFormSections(sections);
+      }
     } catch (error) {
       console.error("Error fetching form sections:", error);
     }
   };
 
-  const processQuestionsIntoSections = (sectionsData: any[]): FormSection[] => {
-    return sectionsData.map(sectionData => {
-      const questionsMap = new Map<number, FormQuestion>();
-      sectionData.questions.forEach((question: any) => {
-        questionsMap.set(question.id, {
-          id: question.id,
-          newQuestion: question.newQuestion,
-          newDropdownChoices: question.newDropdownChoices.map((choice: string) => ({ choice })),
-          newInputType: question.newInputType,
-          sectionTitle: sectionData.title
-        });
-      });
-
-      return {
-        title: sectionData.title,
-        dropdowns: new Map(),
-        questions: questionsMap,
-        customAnswer: new Map()
-      };
-    });
-  };
-
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    sectionIndex: number,
     questionIndex: number
   ) => {
     const updatedSections = [...formSections];
-    const updatedCustomAnswer = new Map(updatedSections[currentPage - 1].customAnswer);
-    updatedCustomAnswer.set(questionIndex, { answer: e.target.value });
-    updatedSections[currentPage - 1] = {
-      ...updatedSections[currentPage - 1],
-      customAnswer: updatedCustomAnswer,
+    const updatedCustomAnswers = [...updatedSections[sectionIndex].customAnswers];
+    updatedCustomAnswers[questionIndex] = { answer: e.target.value };
+    updatedSections[sectionIndex] = {
+      ...updatedSections[sectionIndex],
+      customAnswers: updatedCustomAnswers,
     };
     setFormSections(updatedSections);
   };
 
-  const handleDropdownChange = (
-    e: ChangeEvent<HTMLSelectElement>,
-    questionIndex: number,
-    choiceIndex: number
-  ) => {
+  const handleRadioChange = (value: string, sectionIndex: number, questionIndex: number) => {
     const updatedSections = [...formSections];
-    const question = updatedSections[currentPage - 1].questions.get(questionIndex);
-    if (question) {
-      question.newDropdownChoices[choiceIndex].choice = e.target.value;
-      updatedSections[currentPage - 1] = {
-        ...updatedSections[currentPage - 1],
-        questions: new Map(updatedSections[currentPage - 1].questions),
-      };
-      setFormSections(updatedSections);
-    }
+    const updatedCustomAnswers = [...updatedSections[sectionIndex].customAnswers];
+    updatedCustomAnswers[questionIndex] = { answer: value };
+    updatedSections[sectionIndex] = {
+      ...updatedSections[sectionIndex],
+      customAnswers: updatedCustomAnswers,
+    };
+    setFormSections(updatedSections);
   };
 
   const handleNextPage = () => {
@@ -130,6 +134,14 @@ const FormPage: FC = () => {
     setIsNextEnabled(valid);
   };
 
+  if (isVisible === null) {
+    return <p>Loading...</p>;
+  }
+
+  if (!isVisible) {
+    return <p>This form is not visible.</p>;
+  }
+
   return (
     <div className="w-screen-xl px-4 bg-white min-h-screen flex flex-col items-center justify-center">
       <div className="flex justify-center">
@@ -149,8 +161,9 @@ const FormPage: FC = () => {
             <FormComponent
               formSection={formSections[currentPage - 1]}
               handleInputChange={handleInputChange}
-              handleDropdownChange={handleDropdownChange}
-              isNextEnabled={handleValidation}
+              handleRadioChange={handleRadioChange}
+              handleValidation={handleValidation}
+              sectionIndex={currentPage - 1}
             />
           ) : (
             <p>Loading...</p>
@@ -163,7 +176,7 @@ const FormPage: FC = () => {
               <button onClick={handleNextPage} className={`bg-blue-500 text-white py-2 px-4 rounded ${!isNextEnabled ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!isNextEnabled}>Next</button>
             )}
             {currentPage === formSections.length && (
-              <button onClick={handleSubmit} className={`bg-green-500 text-white py-2 px-4 rounded ${!isNextEnabled ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!isNextEnabled}>Submit</button>
+              <button onClick={handleSubmit} className={`bg-blue-500 text-white py-2 px-4 rounded ${!isNextEnabled ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!isNextEnabled}>Submit</button>
             )}
           </div>
         </div>
