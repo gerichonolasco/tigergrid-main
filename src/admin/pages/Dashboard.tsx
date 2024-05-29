@@ -4,6 +4,7 @@ import AddFormButton from "../components/Dashboard/AddFormButton";
 import EditForm from "../components/Dashboard/EditForm";
 import FormItem from "../components/Dashboard/FormItem";
 import FormResponse from "../components/Dashboard/FormResponse";
+import { useNavigate } from "react-router-dom";
 
 interface FormData {
   id: number;
@@ -70,7 +71,6 @@ interface Form {
   title: string;
   description: string;
   imageSource: string;
-  userTypeVisibility: string[];
   visible: boolean;
   sections: FormSection[];
 }
@@ -115,6 +115,8 @@ const Dashboard: FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [isAddingForm, setIsAddingForm] = useState<boolean>(false);
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetch("http://localhost:8080/form/getAll")
@@ -182,9 +184,11 @@ const Dashboard: FC = () => {
 
   const addForm = async (newForm: Form) => {
     const result = await submitForm(newForm);
+    console.log("Result:", result);
     if (result) {
       setForms([...forms, result]);
       setIsAddingForm(false);
+      navigate("/admin/managequestions", { state: { form: result } });
     } else {
       console.error("Failed to add form");
     }

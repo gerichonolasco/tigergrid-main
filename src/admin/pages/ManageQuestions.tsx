@@ -1,5 +1,5 @@
 import { ChangeEvent, FC, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import EditFormPage1 from "../components/Dashboard/EditForm/EditFormPage1";
 import EditFormPage2 from "../components/Dashboard/EditForm/EditFormPage2";
 import EditFormPage3 from "../components/Dashboard/EditForm/EditFormPage3";
@@ -11,28 +11,49 @@ interface NewQuestion {
   newInputType: string;
   newDropdownChoices: string[];
   page: number;
-  formId?: number;
-}
-
-interface FormSection {
-  id?: number;
-  title: string;
-  answers: NewQuestion[];
+  form: Form;
 }
 
 interface Form {
+  id?: number;
   title: string;
   description: string;
   imageSource: string;
-  userTypeVisibility: string[];
   visible: boolean;
   sections: FormSection[];
+}
+
+type FormSection = {
+  id?: number;
+  title: string;
+  dropdowns: FormDropdown[];
+  customAnswers: CustomAnswer[];
+  questions: FormQuestion[];
+};
+
+interface FormDropdown {
+  id: number;
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number;
+  placeholder: string | null;
+}
+
+type CustomAnswer = {
+  answer: string;
+};
+
+interface FormQuestion {
+  id?: number;
+  question: string;
+  answer: string;
 }
 
 const ManageQuestions: FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const initialForm = location.state.form as Form;
+  const currentForm = location.state?.form as Form;
 
   const [error, setError] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -42,7 +63,7 @@ const ManageQuestions: FC = () => {
     newInputType: "",
     newDropdownChoices: [],
     page: 1,
-    formId: 1,
+    form: currentForm,
   });
 
   const handleInputChange = (
@@ -90,6 +111,7 @@ const ManageQuestions: FC = () => {
   };
 
   const addQuestion = async () => {
+    const currentForm = location.state?.form as Form;
     if (question.newQuestion && question.newInputType) {
       const newQuestion = { ...question, page: currentPage };
 
@@ -117,6 +139,7 @@ const ManageQuestions: FC = () => {
           newInputType: "",
           newDropdownChoices: [],
           page: currentPage,
+          form: currentForm,
         });
         setError(""); // Reset error message
       } catch (error) {
@@ -129,6 +152,8 @@ const ManageQuestions: FC = () => {
   };
 
   const editQuestion = async (index: number, updatedQuestion: NewQuestion) => {
+    const currentForm = location.state?.form as Form;
+
     try {
       const response = await fetch("http://localhost:8080/question/update", {
         method: "PUT",
@@ -155,6 +180,7 @@ const ManageQuestions: FC = () => {
         newInputType: "",
         newDropdownChoices: [],
         page: currentPage,
+        form: currentForm,
       });
       setError("");
     } catch (error) {
@@ -188,97 +214,53 @@ const ManageQuestions: FC = () => {
   );
 
   const handlePageChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const currentForm = location.state?.form as Form;
+
     setCurrentPage(Number(e.target.value));
     setQuestion({
       newQuestion: "",
       newInputType: "",
       newDropdownChoices: [],
       page: Number(e.target.value),
-    }); // Reset the question state for the new page
+      form: currentForm
+    });
   };
 
   const handleSubmitAllQuestions = async () => {
-    const updatedForm = {
-        ...initialForm,
-        sections: initialForm.sections.map((section, index) => ({
-            ...section,
-            answers: questions.filter((q) => q.page === index + 1),
-        })),
-    };
-
+    
     try {
-        const response = await fetch("http://localhost:8080/form/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(updatedForm),
-        });
 
-        if (!response.ok) {
-            throw new Error(
-                `Failed to submit all questions. Server responded with status: ${response.status}`
-            );
-        }
+      
 
-        const savedForm = await response.json();
+      const response = await fetch("http://localhost:8080/form/submitAll", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(questions),
+      });
 
-        const updatedQuestions = questions.map((q) => ({
-          ...q,
-          form: { id: savedForm.id },
-          form_id: savedForm.id,
-        }));
+      console.log(questions)
+  
+      if (!response.ok) {
+        throw new Error(
+          `Failed to submit all questions. Server responded with status: ${response.status}`
+        );
+      }
+  
+      console.log("All questions submitted successfully!");
 
-        console.log(savedForm.id);
-
-        const textQuestions = updatedQuestions.filter(q => q.newInputType === 'Text');
-        const dropdownQuestions = updatedQuestions.filter(q => q.newInputType === 'Dropdown');
-        const customAnswerQuestions = updatedQuestions.filter(q => q.newInputType === 'Custom Answers');
-        
-        console.log(textQuestions, dropdownQuestions, customAnswerQuestions);
-
-        await Promise.all([
-            submitQuestionsToTable(textQuestions, "http://localhost:8080/question/submitText"),
-            submitQuestionsToTable(dropdownQuestions, "http://localhost:8080/question/submitDropdown"),
-            submitQuestionsToTable(customAnswerQuestions, "http://localhost:8080/question/submitCustomAnswers")
-        ]);
-
-        console.log("All questions submitted successfully!");
-
-        navigate("/admin/dashboard", { state: { form: savedForm } });
-
-        setQuestions([]);
-        setError("");
+      setQuestions([]);
     } catch (error) {
-        if (error instanceof TypeError) {
-            console.error("Network error or CORS issue:", error);
-            setError("Network error or CORS issue. Please check the server and try again.");
-        } else {
-            console.error("Error submitting all questions:", error);
-            setError("Failed to submit all questions. Please try again later.");
-        }
+      if (error instanceof TypeError) {
+        console.error("Network error or CORS issue:", error);
+        setError("Network error or CORS issue. Please check the server and try again.");
+      } else {
+        console.error("Error submitting all questions:", error);
+        setError("Failed to submit all questions. Please try again later.");
+      }
     }
   };
-
-const submitQuestionsToTable = async (questions, url) => {
-    if (questions.length === 0) return;
-
-    try {
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(questions),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to submit questions to ${url}. Server responded with status: ${response.status}`);
-        }
-    } catch (error) {
-        throw new Error(`Error submitting questions to ${url}: ${error.message}`);
-    }
-};
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-200">

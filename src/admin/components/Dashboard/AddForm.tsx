@@ -9,16 +9,30 @@ interface Form {
   title: string;
   description: string;
   imageSource: string;
-  userTypeVisibility: string[];
   visible: boolean;
   sections: FormSection[];
 }
 
-interface FormSection {
+type FormSection = {
   id?: number;
   title: string;
-  answers: FormQuestion[];
+  dropdowns: FormDropdown[];
+  customAnswers: CustomAnswer[];
+  questions: FormQuestion[];
+};
+
+interface FormDropdown {
+  id: number;
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number;
+  placeholder: string | null;
 }
+
+type CustomAnswer = {
+  answer: string;
+};
 
 interface FormQuestion {
   id?: number;
@@ -73,7 +87,7 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
         ],
     };
 
-    navigate("/admin/managequestions", { state: { form: newForm } });
+    onSubmit(newForm);
 };
 
 
