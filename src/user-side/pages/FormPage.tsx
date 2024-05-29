@@ -6,6 +6,7 @@ interface FormQuestion {
   id: number;
   newQuestion: string;
   newDropdownChoices: string[];
+  page: number;
   newInputType: 'text' | 'radio button' | 'dropdown';
 }
 
@@ -44,6 +45,23 @@ const FormPage: FC = () => {
   const [formSections, setFormSections] = useState<FormSection[]>([]);
   const [isNextEnabled, setIsNextEnabled] = useState(false);
   const [isVisible, setIsVisible] = useState<boolean | null>(null);
+  const [maxPage, setMaxPage] = useState(0);
+
+  useEffect(() => {
+    if (formId) {
+      fetchFormSections(formId);
+  
+      const maxPage = formSections.reduce((max, section) => {
+        const sectionMaxPage = section.questions.reduce((max, question) => {
+          return Math.max(max, question.page);
+        }, 0);
+        return Math.max(max, sectionMaxPage);
+      }, 0);
+  
+      setMaxPage(maxPage);
+      console.log("Max Page: " + maxPage)
+    }
+  }, [formId]);
 
   useEffect(() => {
     if (formId) {
@@ -69,13 +87,15 @@ const FormPage: FC = () => {
             id: dropdown.id,
             newQuestion: dropdown.newQuestion,
             newInputType: dropdown.newInputType.toLowerCase() as 'text' | 'radio button' | 'dropdown',
+            page: dropdown.page,
             newDropdownChoices: dropdown.newDropdownChoices,
           })),
           questions: section.questions.map((question: any) => ({
             id: question.id,
             newQuestion: question.newQuestion,
             newDropdownChoices: question.newDropdownChoices,
-            newInputType: question.newInputType.toLowerCase() as 'text' | 'radio button' | 'dropdown',
+            page: question.page,
+            newInputType: question.newInputType.toLowerCase() as 'text' | 'radio' | 'dropdown',
           })),
           customAnswers: section.questions.map(() => ({ answer: '' })),
         }));
@@ -113,7 +133,7 @@ const FormPage: FC = () => {
   };
 
   const handleNextPage = () => {
-    if (currentPage < formSections.length && isNextEnabled) {
+    if (currentPage < maxPage) {
       setCurrentPage(currentPage + 1);
     }
   };
@@ -124,11 +144,44 @@ const FormPage: FC = () => {
     }
   };
 
-  const handleSubmit = () => {
-    if (isNextEnabled) {
-      console.log("Form submitted:", formSections);
+  const handleSubmit = async () => {
+    try {
+      console.log("Fetching user...");
+      const result = await fetch("http://localhost:8080/user/getLoggedIn", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (result.ok) {
+
+        const user = await result.json();
+
+        if (isNextEnabled) {
+          console.log("Form submitted:");
+          formSections.forEach((section) => {
+            console.log(section.customAnswers)
+            section.customAnswers.forEach((answer) => {
+              section.questions.forEach((question) => {
+                fetch(`http://localhost:8080/response/saveAll/${question.id}/${user.id}`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(answer),
+                });
+                
+              })
+            })
+          })
+        }
+      } else {
+        console.error("Error fetching user:", result.statusText);
+        console.log("Response:", result);
+      }
+    }catch (error) {
+      console.error("Error fetching user:", error);
     }
-  };
+  }
 
   const handleValidation = (valid: boolean) => {
     setIsNextEnabled(valid);
@@ -156,28 +209,31 @@ const FormPage: FC = () => {
         </ol>
       </div>
       <div className="flex flex-col items-center justify-center mt-10">
-        <div className="bg-gray-100 p-8 rounded-lg w-full sm:w-[700px] h-auto sm:h-[500px] flex flex-col items-center justify-center">
-          {formSections.length > 0 ? (
-            <FormComponent
-              formSection={formSections[currentPage - 1]}
-              handleInputChange={handleInputChange}
-              handleRadioChange={handleRadioChange}
-              handleValidation={handleValidation}
-              sectionIndex={currentPage - 1}
-            />
-          ) : (
-            <p>Loading...</p>
-          )}
-          <div className="mt-4 flex space-x-4">
-            {currentPage > 1 && (
-              <button onClick={handlePreviousPage} className="bg-blue-500 text-white py-2 px-4 rounded">Previous</button>
+        <div className="flex flex-col">
+          <div className="bg-gray-100 p-8 rounded-lg w-full sm:w-[700px] h-auto sm:h-[500px] flex flex-col items-center justify-center">
+            {formSections.length > 0 ? (
+              <FormComponent
+                formSection={formSections[currentPage - 1]}
+                handleInputChange={handleInputChange}
+                handleRadioChange={handleRadioChange}
+                sectionIndex={currentPage - 1}
+                currentPage={currentPage}
+                isNextEnabled={handleValidation}
+              />
+            ) : (
+              <p>Loading...</p>
             )}
-            {currentPage < formSections.length && (
-              <button onClick={handleNextPage} className={`bg-blue-500 text-white py-2 px-4 rounded ${!isNextEnabled ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!isNextEnabled}>Next</button>
-            )}
-            {currentPage === formSections.length && (
-              <button onClick={handleSubmit} className={`bg-blue-500 text-white py-2 px-4 rounded ${!isNextEnabled ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!isNextEnabled}>Submit</button>
-            )}
+            <div className="mt-4 flex space-x-4">
+              {currentPage > 1 && (
+                <button onClick={handlePreviousPage} className="bg-blue-500 text-white py-2 px-4 rounded">Previous</button>
+              )}
+              {currentPage < formSections.length && (
+                <button onClick={handleNextPage} className={`bg-blue-500 text-white py-2 px-4 rounded ${!isNextEnabled ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!isNextEnabled}>Next</button>
+              )}
+              {currentPage === formSections.length && (
+                <button onClick={handleSubmit} className={`bg-blue-500 text-white py-2 px-4 rounded ${!isNextEnabled ? "opacity-50 cursor-not-allowed" : ""}`} disabled={!isNextEnabled}>Submit</button>
+              )}
+            </div>
           </div>
         </div>
       </div>
