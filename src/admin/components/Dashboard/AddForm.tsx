@@ -1,5 +1,4 @@
 import React, { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate from react-router-dom
 
 interface AddFormProps {
   onSubmit: (newForm: Form) => Promise<void>; // Make onSubmit return a Promise
@@ -8,7 +7,6 @@ interface AddFormProps {
 interface Form {
   title: string;
   description: string;
-  imageSource: string;
   visible: boolean;
   sections: FormSection[];
 }
@@ -43,9 +41,7 @@ interface FormQuestion {
 const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
   const [formTitle, setFormTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [file, setFile] = useState<File | null>(null);
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
-  const navigate = useNavigate();
 
   const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setFormTitle(event.target.value);
@@ -55,16 +51,10 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
     setDescription(event.target.value);
   };
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-    }
-  };
 
   const validateForm = useCallback(() => {
-    return formTitle.trim() !== "" && description.trim() !== "" && file !== null;
-  }, [formTitle, description, file]);
+    return formTitle.trim() !== "" && description.trim() !== "";
+  }, [formTitle, description]);
 
   useEffect(() => {
     setIsFormValid(validateForm());
@@ -75,7 +65,6 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
     const newForm: Form = {
         title: formTitle,
         description: description,
-        imageSource: URL.createObjectURL(file!),
         userTypeVisibility: ["user", "admin"],
         visible: true,
         sections: [
@@ -129,21 +118,6 @@ const AddForm: FC<AddFormProps> = ({ onSubmit }) => {
             value={description}
             onChange={handleDescriptionChange}
             required
-          />
-        </div>
-        <div className="mb-5">
-          <label
-            htmlFor="user_avatar"
-            className="block mb-2 text-sm font-medium text-gray-900"
-          >
-            Upload File
-          </label>
-          <input
-            className="w-full p-2.5 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-            aria-describedby="user_avatar_help"
-            id="user_avatar"
-            type="file"
-            onChange={handleFileChange}
           />
         </div>
         <button

@@ -7,7 +7,7 @@ interface FormItemProps {
   toggleShowOnUserSide: () => void;
   onEdit: () => void;
   onView: () => void;
-  onDelete: () => void; // Add onDelete prop
+  onDelete: () => void;
 }
 
 const FormItem: FC<FormItemProps> = ({
@@ -17,13 +17,13 @@ const FormItem: FC<FormItemProps> = ({
   toggleShowOnUserSide,
   onEdit,
   onView,
-  onDelete, // Include onDelete prop
+  onDelete,
 }) => {
   return (
-    <div className="border border-gray-300 rounded p-3">
+    <div className="border border-gray-300 rounded p-3 flex flex-col">
       <h2 className="text-xl font-bold mb-3">{title}</h2>
       <p className="mb-2">{content}</p>
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-stretch mt-auto">
         <button
           className={`px-4 py-2 rounded ${
             showOnUserSide ? "bg-green-500" : "bg-gray-300"
