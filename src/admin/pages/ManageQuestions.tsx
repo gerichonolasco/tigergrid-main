@@ -114,6 +114,9 @@ const ManageQuestions: FC = () => {
     const currentForm = location.state?.form as Form;
     if (question.newQuestion && question.newInputType) {
       const newQuestion = { ...question, page: currentPage };
+      newQuestion.form = currentForm;
+
+      console.log(newQuestion);
 
       try {
         const response = await fetch("http://localhost:8080/question/create", {
@@ -141,7 +144,7 @@ const ManageQuestions: FC = () => {
           page: currentPage,
           form: currentForm,
         });
-        setError(""); // Reset error message
+        setError("");
       } catch (error) {
         console.error("Error adding question:", error);
         setError("Failed to add question. Please try again later.");
@@ -227,28 +230,63 @@ const ManageQuestions: FC = () => {
   };
 
   const handleSubmitAllQuestions = async () => {
-    
     try {
+      const textQuestions = questions.filter(q => q.newInputType === 'Text' || q.newInputType === 'Radio Button');
+      const dropdownQuestions = questions.filter(q => q.newInputType === 'Dropdown');
+      const customAnswerQuestions = questions.filter(q => q.newInputType === 'Custom Answer');
 
-      
+      textQuestions.forEach(question => {
+          const response = fetch(`http://localhost:8080/form-sections/${question.form.id}/questions/${question.id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(questions),
+        });
 
-      const response = await fetch("http://localhost:8080/form/submitAll", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(questions),
+        if (!response) {
+          throw new Error(
+            `Failed to update question. Server responded with status: ${response}`
+          );
+        }
+      });
+
+      dropdownQuestions.forEach(question => {
+          const response = fetch(`http://localhost:8080/form-sections/${question.form.id}/dropdowns/${question.id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(questions),
+        });
+
+        if (!response) {
+          throw new Error(
+            `Failed to update question. Server responded with status: ${response}`
+          );
+        }
+      });
+
+      customAnswerQuestions.forEach(question => {
+          const response = fetch(`http://localhost:8080/form-sections/${question.form.id}/custom_answers/${question.id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(questions),
+        });
+
+        if (!response) {
+          throw new Error(
+            `Failed to update question. Server responded with status: ${response}`
+          );
+        }
       });
 
       console.log(questions)
   
-      if (!response.ok) {
-        throw new Error(
-          `Failed to submit all questions. Server responded with status: ${response.status}`
-        );
-      }
-  
       console.log("All questions submitted successfully!");
+      navigate("/admin/dashboard");
 
       setQuestions([]);
     } catch (error) {
