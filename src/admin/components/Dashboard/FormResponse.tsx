@@ -1,5 +1,4 @@
-import { FC, useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { FC } from "react";
 
 interface FormQuestion {
   id: number;
@@ -44,7 +43,6 @@ interface FormResponseProps {
 const FormResponse: FC<FormResponseProps> = ({ id, title, sections = [] }) => {
   return (
     <div className="form-response">
-      <h2 className="form-title text-2xl font-bold mb-4 text-center">{title}</h2>
       {sections.map((section, sectionIndex) => (
         <div key={`section-${sectionIndex}`} className="mb-4">
           <h3 className="section-title text-xl font-bold mb-2">{section.title}</h3>

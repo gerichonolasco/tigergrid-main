@@ -6,7 +6,6 @@ interface Form {
   id: number;
   title: string;
   description: string;
-  imageSource: string;
   sections: Map<number, any>;
 }
 
@@ -43,11 +42,6 @@ const LandingPage: FC = () => {
             key={form.id}
             className="bg-white shadow-md rounded-lg overflow-hidden"
           >
-            <img
-              className="w-full h-48 object-cover"
-              src={form.imageSource}
-              alt="Form"
-            />
             <div className="p-4">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
                 {form.title}
@@ -56,7 +50,7 @@ const LandingPage: FC = () => {
               <div className="mt-4 flex justify-center">
                 <button
                   onClick={() => handleAddFeedbackClick(form.id)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-500"
                 >
                   Add Feedback
                 </button>

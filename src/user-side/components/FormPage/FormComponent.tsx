@@ -73,12 +73,14 @@ const FormComponent: FC<FormComponentProps> = ({
 
   return (
     <div className="form-section">
-      <h2 className="text-2xl font-bold mb-4">{formSection.title}</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center sticky top-0">{formSection.title}</h2>
       <form onSubmit={handleSubmit}>
         {mergedQuestions.map((question, questionIndex) => (
           question.page === currentPage && (
-            <div key={question.id} className="question-block mb-6">
-              <label className="text-lg mb-2">{question.newQuestion}</label>
+            <div key={question.id} className="question-block mb-6 text-center">
+              <label className="text-lg mb-2">
+                {questionIndex + 1}. {question.newQuestion}
+              </label>
               <br />
               {question.newInputType === 'text' && (
                 <input
@@ -91,7 +93,7 @@ const FormComponent: FC<FormComponentProps> = ({
                       [question.id]: { answer: e.target.value },
                     }));
                   }}
-                  className="form-input block w-full p-2 border border-gray-300 rounded"
+                  className="form-input block w-full p-2 border border-gray-300 rounded mt-2"
                 />
               )}
               {question.newInputType === 'dropdown' && (
@@ -104,7 +106,7 @@ const FormComponent: FC<FormComponentProps> = ({
                       [question.id]: { answer: e.target.value },
                     }));
                   }}
-                  className="form-select block w-full p-2 border border-gray-300 rounded"
+                  className="form-select block w-full p-2 border border-gray-300 rounded mt-2"
                 >
                   <option value="">Select...</option>
                   {question.newDropdownChoices.map((choice, choiceIndex) => (
@@ -115,34 +117,31 @@ const FormComponent: FC<FormComponentProps> = ({
                 </select>
               )}
               {question.newInputType === 'radio button' && (
-                <div className="flex" style={{ alignItems: "center", justifyContent: "center", margin: "10px" }}>
-                  <input
-                    type="radio"
-                    value={true}
-                    name={question.newQuestion}
-                    style={{ marginRight: "5px" }}
-                    onChange={(e) => {
-                      handleRadioChange(e, sectionIndex, questionIndex);
-                      setAnswers((prevAnswers) => ({
-                        ...prevAnswers,
-                        [question.id]: { answer: e.target.value },
-                      }));
-                    }}
-                  />{' '}
-                  <label style={{ marginRight: "15px" }}>True</label>
-                  <input
-                    type="radio"
-                    value={false}
-                    name={question.newQuestion}
-                    onChange={(e) => {
-                      handleRadioChange(e, sectionIndex, questionIndex);
-                      setAnswers((prevAnswers) => ({
-                        ...prevAnswers,
-                        [question.id]: { answer: e.target.value },
-                      }));
-                    }}
-                  />
-                  <label>False</label>
+                <div className="flex justify-center space-x-4 mt-2">
+                  {[
+                    { value: 5, label: "Strongly Agree" },
+                    { value: 4, label: "Agree" },
+                    { value: 3, label: "Neutral" },
+                    { value: 2, label: "Disagree" },
+                    { value: 1, label: "Strongly Disagree" },
+                  ].map(({ value, label }) => (
+                    <div key={value} className="flex flex-col items-center">
+                      <input
+                        type="radio"
+                        value={value}
+                        name={question.newQuestion}
+                        onChange={(e) => {
+                          handleRadioChange(e.target.value, sectionIndex, questionIndex);
+                          setAnswers((prevAnswers) => ({
+                            ...prevAnswers,
+                            [question.id]: { answer: e.target.value },
+                          }));
+                        }}
+                        className="mb-1 h-4 w-4"
+                      />
+                      <label className="text-sm">{`${value} - (${label})`}</label>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

@@ -32,11 +32,12 @@ const ManageUsers = () => {
     lastName: "",
     email: "",
     password: "",
-    type: "",
+    type: "USER", // Default role set to "USER"
     responses: []
   });
 
   const [users, setUsers] = useState<User[]>([]);
+  const [error, setError] = useState<string>("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -45,63 +46,75 @@ const ManageUsers = () => {
 
   useEffect(() => {
     fetch("http://localhost:8080/user/getAll")
-    .then(res => res.json())
-    .then((result: User[]) => {
-      setUsers(result);
-    })
-    .catch(error => {
-      console.error("Error fetching users:", error);
-    });
+      .then(res => res.json())
+      .then((result: User[]) => {
+        setUsers(result);
+      })
+      .catch(error => {
+        console.error("Error fetching users:", error);
+      });
   }, []);
 
   const addUser = () => {
+    if (!user.firstName || !user.lastName || !user.email || !user.password || !user.type) {
+      setError("All fields are required.");
+      return;
+    }
+
+    const existingUser = users.find(u => u.email === user.email);
+    if (existingUser) {
+      setError("A user with this email already exists.");
+      return;
+    }
+
     const newUser: User = { ...user };
-    
+
     fetch("http://localhost:8080/user/create", {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newUser)
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error("Failed to add user. Server responded with status: " + response.status);
-      }
-      return response.json();
-    })
-    .then(data => {
-      newUser.id = data.id; 
-      setUsers([...users, newUser]);
-    })
-    .catch(error => {
-      console.error("Error adding user:", error);
-    });
-  
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to add user. Server responded with status: " + response.status);
+        }
+        return response.json();
+      })
+      .then(data => {
+        newUser.id = data.id;
+        setUsers([...users, newUser]);
+        setError(""); // Clear any previous error message
+      })
+      .catch(error => {
+        console.error("Error adding user:", error);
+      });
+
     setUser({
       id: "",
       firstName: "",
       lastName: "",
       email: "",
       password: "",
-      type: "",
+      type: "USER", // Reset role to "USER"
       responses: []
     });
   };
-  
+
   const deleteUser = (id: string) => {
     fetch("http://localhost:8080/user/delete/" + id, {
       method: "DELETE"
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error("Failed to delete user. Server responded with status: " + response.status);
-      }
-      // Filter out the deleted user from the state
-      setUsers(users.filter(user => user.id !== id));
-      console.log(response);
-    })
-    .catch(error => {
-      console.error("Error deleting user:", error);
-    });
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to delete user. Server responded with status: " + response.status);
+        }
+        // Filter out the deleted user from the state
+        setUsers(users.filter(user => user.id !== id));
+        console.log(response);
+      })
+      .catch(error => {
+        console.error("Error deleting user:", error);
+      });
   };
 
   return (
@@ -125,27 +138,73 @@ const ManageUsers = () => {
             <tbody>
               <tr className="border-b hover:bg-orange-100 bg-gray-100">
                 <td className="p-3 px-5">
-                  <input type="text" name="firstName" placeholder="Enter First Name" className="bg-transparent border-b-2 border-gray-300 py-2" value={user.firstName} onChange={handleInputChange} />
+                  <input
+                    type="text"
+                    name="firstName"
+                    placeholder="Enter First Name"
+                    className="bg-transparent border-b-2 border-gray-300 py-2"
+                    value={user.firstName}
+                    onChange={handleInputChange}
+                  />
                 </td>
                 <td className="p-3 px-5">
-                  <input type="text" name="lastName" placeholder="Enter Last Name" className="bg-transparent border-b-2 border-gray-300 py-2" value={user.lastName} onChange={handleInputChange} />
+                  <input
+                    type="text"
+                    name="lastName"
+                    placeholder="Enter Last Name"
+                    className="bg-transparent border-b-2 border-gray-300 py-2"
+                    value={user.lastName}
+                    onChange={handleInputChange}
+                  />
                 </td>
                 <td className="p-3 px-5">
-                  <input type="text" name="email" placeholder="Enter Email" className="bg-transparent border-b-2 border-gray-300 py-2" value={user.email} onChange={handleInputChange} />
+                  <input
+                    type="text"
+                    name="email"
+                    placeholder="Enter Email"
+                    className="bg-transparent border-b-2 border-gray-300 py-2"
+                    value={user.email}
+                    onChange={handleInputChange}
+                  />
                 </td>
                 <td className="p-3 px-5">
-                  <input type="password" name="password" placeholder="Enter Password" className="bg-transparent border-b-2 border-gray-300 py-2" value={user.password} onChange={handleInputChange} />
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Enter Password"
+                    className="bg-transparent border-b-2 border-gray-300 py-2"
+                    value={user.password}
+                    onChange={handleInputChange}
+                  />
                 </td>
                 <td className="p-3 px-5">
-                <select name="type" value={user.type} className="bg-transparent border-b-2 border-gray-300 py-2" onChange={handleInputChange}>
-                  <option value="USER">USER</option>
-                  <option value="ADMIN">ADMIN</option>
-                </select>
+                  <select
+                    name="type"
+                    value={user.type}
+                    className="bg-transparent border-b-2 border-gray-300 py-2"
+                    onChange={handleInputChange}
+                  >
+                    <option value="USER">USER</option>
+                    <option value="ADMIN">ADMIN</option>
+                  </select>
                 </td>
                 <td className="p-3 px-5 flex justify-end">
-                  <button type="button" onClick={addUser} className="text-sm bg-green-500 hover:bg-green-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline">Add</button>
+                  <button
+                    type="button"
+                    onClick={addUser}
+                    className="text-sm bg-green-500 hover:bg-green-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                  >
+                    Add
+                  </button>
                 </td>
               </tr>
+              {error && (
+                <tr>
+                  <td colSpan={6} className="text-red-500 text-center py-2">
+                    {error}
+                  </td>
+                </tr>
+              )}
               {users.map((user, index) => (
                 <tr key={index} className="border-b hover:bg-orange-100 bg-gray-100">
                   <td className="p-3 px-5">{user.firstName}</td>
@@ -154,7 +213,13 @@ const ManageUsers = () => {
                   <td className="p-3 px-5">{user.password}</td>
                   <td className="p-3 px-5">{user.type}</td>
                   <td className="p-3 px-5 flex justify-end">
-                    <button type="button" onClick={() => deleteUser(user.id)} className="text-sm bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline">Archive</button>
+                    <button
+                      type="button"
+                      onClick={() => deleteUser(user.id)}
+                      className="text-sm bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                    >
+                      Delete User
+                    </button>
                   </td>
                 </tr>
               ))}
