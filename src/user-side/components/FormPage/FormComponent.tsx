@@ -93,7 +93,7 @@ const FormComponent: FC<FormComponentProps> = ({
                       [question.id]: { answer: e.target.value },
                     }));
                   }}
-                  className="form-input block w-full p-2 border border-gray-300 rounded mt-2"
+                  className="form-input block w-full p-1 border border-gray-300 rounded mt-2"
                 />
               )}
               {question.newInputType === 'dropdown' && (
@@ -106,7 +106,7 @@ const FormComponent: FC<FormComponentProps> = ({
                       [question.id]: { answer: e.target.value },
                     }));
                   }}
-                  className="form-select block w-full p-2 border border-gray-300 rounded mt-2"
+                  className="form-select block w-full p-1 border border-gray-300 rounded mt-2"
                 >
                   <option value="">Select...</option>
                   {question.newDropdownChoices.map((choice, choiceIndex) => (
