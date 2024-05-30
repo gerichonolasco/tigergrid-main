@@ -1,5 +1,5 @@
 import { ChangeEvent, FC, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import EditFormPage1 from "../components/Dashboard/EditForm/EditFormPage1";
 import EditFormPage2 from "../components/Dashboard/EditForm/EditFormPage2";
 import EditFormPage3 from "../components/Dashboard/EditForm/EditFormPage3";
@@ -11,12 +11,52 @@ interface NewQuestion {
   newInputType: string;
   newDropdownChoices: string[];
   page: number;
-  formId?: number;
+  form: Form;
+}
+
+interface Form {
+  id?: number;
+  title: string;
+  description: string;
+  imageSource: string;
+  visible: boolean;
+  sections: FormSection[];
+}
+
+type FormSection = {
+  id?: number;
+  title: string;
+  dropdowns: FormDropdown[];
+  customAnswers: CustomAnswer[];
+  questions: FormQuestion[];
+};
+
+interface FormDropdown {
+  id: number;
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number;
+  placeholder: string | null;
+}
+
+type CustomAnswer = {
+  answer: string;
+};
+
+interface FormQuestion {
+  id?: number;
+  question: string;
+  answer: string;
 }
 
 const EditManageQuestions: FC = () => {
-  const { formId } = useParams<{ formId: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
+  const currentForm = location.state?.form as Form;
+
+  console.log("Current form: " + currentForm);
+
   const [error, setError] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [questions, setQuestions] = useState<NewQuestion[]>([]);
@@ -25,13 +65,14 @@ const EditManageQuestions: FC = () => {
     newInputType: "",
     newDropdownChoices: [],
     page: 1,
-    formId: formId ? parseInt(formId) : undefined,
+    form: currentForm
+    
   });
 
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/question/getByForm/${formId}`);
+        const response = await fetch(`http://localhost:8080/question/getByForm/${question.form.id}`);
         if (!response.ok) {
           throw new Error(`Failed to fetch questions. Server responded with status: ${response.status}`);
         }
@@ -42,10 +83,10 @@ const EditManageQuestions: FC = () => {
         setError("Failed to fetch questions. Please try again later.");
       }
     };
-    if (formId) {
+    if (question.form.id) {
       fetchQuestions();
     }
-  }, [formId]);
+  }, [question.form.id]);
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -92,8 +133,10 @@ const EditManageQuestions: FC = () => {
   };
 
   const addQuestion = async () => {
+    const currentForm = location.state?.form as Form;
+
     if (question.newQuestion && question.newInputType) {
-      const newQuestion = { ...question, page: currentPage };
+      const newQuestion = { ...question, page: currentPage, form: currentForm };
 
       try {
         const response = await fetch("http://localhost:8080/question/create", {
@@ -117,7 +160,7 @@ const EditManageQuestions: FC = () => {
           newInputType: "",
           newDropdownChoices: [],
           page: currentPage,
-          formId: formId ? parseInt(formId) : undefined,
+          form: currentForm
         });
         setError(""); // Reset error message
       } catch (error) {
@@ -130,6 +173,9 @@ const EditManageQuestions: FC = () => {
   };
 
   const editQuestion = async (index: number, updatedQuestion: NewQuestion) => {
+    const currentForm = location.state?.form as Form;
+    updatedQuestion.form = currentForm;
+
     try {
       const response = await fetch("http://localhost:8080/question/update", {
         method: "PUT",
@@ -154,8 +200,10 @@ const EditManageQuestions: FC = () => {
         newInputType: "",
         newDropdownChoices: [],
         page: currentPage,
-        formId: formId ? parseInt(formId) : undefined,
+        form: currentForm
       });
+
+
       setError("");
     } catch (error) {
       console.error("Error updating question:", error);
@@ -186,24 +234,26 @@ const EditManageQuestions: FC = () => {
   );
 
   const handlePageChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const currentForm = location.state?.form as Form;
     setCurrentPage(Number(e.target.value));
     setQuestion({
       newQuestion: "",
       newInputType: "",
       newDropdownChoices: [],
       page: Number(e.target.value),
-      formId: formId ? parseInt(formId) : undefined,
+      form: currentForm
     }); // Reset the question state for the new page
   };
 
   const handleSubmitAllQuestions = async () => {
     try {
+      console.log(JSON.stringify(currentForm))
       const response = await fetch("http://localhost:8080/question/submitAll", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(questions),
+        body: JSON.stringify(currentForm),
       });
 
       if (!response.ok) {
@@ -212,6 +262,7 @@ const EditManageQuestions: FC = () => {
 
       console.log("All questions submitted successfully!");
 
+      navigate("/admin/dashboard")
       // Clear questions and error state upon successful submission
       setQuestions([]);
       setError("");
@@ -310,7 +361,7 @@ const EditManageQuestions: FC = () => {
         <div className="flex justify-center mt-4">
           <button
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-            onClick={() => navigate("/admin/dashboard")}
+            onClick={handleSubmitAllQuestions}
           >
             Back to Home
           </button>

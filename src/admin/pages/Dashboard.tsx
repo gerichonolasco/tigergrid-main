@@ -247,7 +247,7 @@ const Dashboard: FC = () => {
   };
 
   const handleSubmit = async (formData: Form) => {
-    console.log(formData);
+    console.log(JSON.stringify(formData));
     setIsEditing(false);
     setEditingFormIndex(null);
   };
@@ -264,7 +264,7 @@ const Dashboard: FC = () => {
           <div className="flex justify-center items-center w-full h-full fixed inset-0 z-50 bg-gray-900 bg-opacity-50">
             <EditForm
               form={forms[editingFormIndex!]}
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmit} 
             />
           </div>
         ) : (

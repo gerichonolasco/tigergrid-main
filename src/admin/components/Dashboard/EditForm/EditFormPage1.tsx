@@ -5,6 +5,44 @@ interface EditQuestion {
   newQuestion: string;
   newInputType: string;
   newDropdownChoices: string[];
+  page: number;
+  form: Form;
+}
+
+interface Form {
+  id?: number;
+  title: string;
+  description: string;
+  imageSource: string;
+  visible: boolean;
+  sections: FormSection[];
+}
+
+type FormSection = {
+  id?: number;
+  title: string;
+  dropdowns: FormDropdown[];
+  customAnswers: CustomAnswer[];
+  questions: FormQuestion[];
+};
+
+interface FormDropdown {
+  id: number;
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number;
+  placeholder: string | null;
+}
+
+type CustomAnswer = {
+  answer: string;
+};
+
+interface FormQuestion {
+  id?: number;
+  question: string;
+  answer: string;
 }
 
 interface EditFormPage1Props {
@@ -44,6 +82,8 @@ const EditFormPage1: FC<EditFormPage1Props> = ({
     newQuestion: "",
     newInputType: "",
     newDropdownChoices: [],
+    page: 1,
+    form: question.form,
   });
 
   const handleEdit = (index: number) => {
@@ -60,6 +100,8 @@ const EditFormPage1: FC<EditFormPage1Props> = ({
       newQuestion: "",
       newInputType: "",
       newDropdownChoices: [],
+      page: 1,
+      form: question.form,
     });
   };
 

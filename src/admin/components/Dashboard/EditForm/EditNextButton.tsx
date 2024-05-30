@@ -3,14 +3,66 @@ import { useNavigate } from 'react-router-dom';
 
 interface EditNextButtonProps {
   to: string;
-  formId: number; // Add formId as a prop
+  form: {
+    id?: number;
+    title: string;
+    description: string;
+    imageSource: string;
+    visible: boolean;
+    sections: FormSection[];
+  };
 }
 
-const EditNextButton: React.FC<EditNextButtonProps> = ({ to, formId }) => {
+interface NewQuestion {
+  id?: number;
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number;
+  form: Form;
+}
+
+interface Form {
+  id?: number;
+  title: string;
+  description: string;
+  imageSource: string;
+  visible: boolean;
+  sections: FormSection[];
+}
+
+type FormSection = {
+  id?: number;
+  title: string;
+  dropdowns: FormDropdown[];
+  customAnswers: CustomAnswer[];
+  questions: FormQuestion[];
+};
+
+interface FormDropdown {
+  id: number;
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number;
+  placeholder: string | null;
+}
+
+type CustomAnswer = {
+  answer: string;
+};
+
+interface FormQuestion {
+  id?: number;
+  question: string;
+  answer: string;
+}
+
+const EditNextButton: React.FC<EditNextButtonProps> = ({ to, form }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`${to}/${formId}`);
+    navigate(`${to}/${form.id}`, { state: { form } });
   };
 
   return (

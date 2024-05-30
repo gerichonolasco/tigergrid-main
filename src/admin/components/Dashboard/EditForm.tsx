@@ -1,32 +1,72 @@
 import { ChangeEvent, FC, FormEvent, useState } from "react";
 import EditNextButton from "./EditForm/EditNextButton";
+import { useNavigate } from "react-router-dom";
 
 interface EditFormProps {
   form: {
-    id: number;
+    id?: number;
     title: string;
     description: string;
+    imageSource: string;
+    visible: boolean;
     sections: FormSection[];
   };
-  onSubmit: (formData: any) => void;
+  onSubmit: (formData: Form) => void;
 }
 
-interface FormSection {
-  id: number;
-  title: string;
-  answers: FormQuestion[];
+interface NewQuestion {
+  id?: number;
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number;
+  form: Form;
 }
+
+interface Form {
+  id?: number;
+  title: string;
+  description: string;
+  imageSource: string;
+  visible: boolean;
+  sections: FormSection[];
+}
+
+type FormSection = {
+  id?: number;
+  title: string;
+  dropdowns: FormDropdown[];
+  customAnswers: CustomAnswer[];
+  questions: FormQuestion[];
+};
+
+interface FormDropdown {
+  id: number;
+  newQuestion: string;
+  newInputType: string;
+  newDropdownChoices: string[];
+  page: number;
+  placeholder: string | null;
+}
+
+type CustomAnswer = {
+  answer: string;
+};
 
 interface FormQuestion {
-  id: number;
+  id?: number;
   question: string;
   answer: string;
 }
 
 const EditForm: FC<EditFormProps> = ({ form, onSubmit }) => {
+  const navigate = useNavigate()
+
   const [formTitle, setFormTitle] = useState<string>(form.title);
   const [description, setDescription] = useState<string>(form.description);
   const [sections, setSections] = useState<FormSection[]>(form.sections || []);
+
+  console.log("Form:", form);
 
   const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setFormTitle(event.target.value);
@@ -36,14 +76,27 @@ const EditForm: FC<EditFormProps> = ({ form, onSubmit }) => {
     setDescription(event.target.value);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = {
+      id: form.id,
       title: formTitle,
       description: description,
-      sections: sections,
+      imageSource: form.imageSource,
+      visible: form.visible,
+      sections: form.sections,
     };
-    onSubmit(formData);
+    
+    console.log(JSON.stringify(formData));
+    await fetch("http://localhost:8080/form/update", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData)
+      })
+
+    
   };
 
   return (
@@ -86,7 +139,7 @@ const EditForm: FC<EditFormProps> = ({ form, onSubmit }) => {
             required
           />
         </div>
-        <EditNextButton to="/admin/editmanagequestions" formId={form.id} />
+        <EditNextButton to="/admin/editmanagequestions" form={form}/>
       </form>
     </div>
   );

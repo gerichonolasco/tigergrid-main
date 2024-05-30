@@ -2,6 +2,8 @@ import { ChangeEvent, FC, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import FormComponent from "../components/FormPage/FormComponent";
 
+// s
+
 interface FormQuestion {
   id: number;
   newQuestion: string;
